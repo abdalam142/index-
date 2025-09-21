@@ -20,6 +20,8 @@
       width: 120px; height: 90px; border: 1px solid #ccc;
       display: none;
     }
+    #protectedContent { display: none; }
+    #loginBox { margin-top: 100px; }
   </style>
 </head>
 <body>
@@ -28,41 +30,51 @@
   <!-- مؤشر حالة الملف -->
   <div id="fileStatus" title="حالة ملف Excel"></div>
 
-  <!-- اختيار الشيت -->
-  <select id="sheetSelect"></select>
-  <br>
-
-  <!-- مربع البحث -->
-  <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
-
-  <!-- زر الكاميرا -->
-  <div>
-    <button id="toggleCamera">📷 تشغيل/إيقاف الكاميرا</button><br>
-    <video id="cameraPreview"></video>
+  <!-- مربع تسجيل الدخول -->
+  <div id="loginBox">
+    <h3>أدخل كلمة المرور للمتابعة</h3>
+    <input type="password" id="passwordInput" placeholder="كلمة المرور">
+    <button onclick="checkPassword()">دخول</button>
   </div>
 
-  <!-- النتائج -->
-  <table id="results"></table>
+  <!-- المحتوى المحمي -->
+  <div id="protectedContent">
+    <!-- اختيار الشيت -->
+    <select id="sheetSelect"></select>
+    <br>
+
+    <!-- مربع البحث -->
+    <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
+
+    <!-- زر الكاميرا -->
+    <div>
+      <button id="toggleCamera">📷 تشغيل/إيقاف الكاميرا</button><br>
+      <video id="cameraPreview"></video>
+    </div>
+
+    <!-- النتائج -->
+    <table id="results"></table>
+  </div>
 
   <script>
     let excelData = {};
     let selectedSheet = "";
     let codeReader = null;
     let cameraOn = false;
-    let unlocked = false; // عشان الباسورد
+    let unlocked = false;
 
     const fileStatus = document.getElementById("fileStatus");
 
-    // باسورد قبل أي عملية بحث
-    const PASSWORD = "1234"; // غير الباسورد ده زي ما تحب
+    // باسورد
+    const PASSWORD = "1234"; // غير الباسورد زي ما تحب
     function checkPassword() {
-      let pass = prompt("من فضلك أدخل كلمة المرور للمتابعة:");
+      let pass = document.getElementById("passwordInput").value;
       if (pass === PASSWORD) {
         unlocked = true;
-        alert("تم فتح البحث ✅");
+        document.getElementById("loginBox").style.display = "none";
+        document.getElementById("protectedContent").style.display = "block";
       } else {
         alert("كلمة مرور خاطئة ❌");
-        checkPassword();
       }
     }
 
@@ -102,13 +114,8 @@
     });
 
     document.getElementById("searchBar").addEventListener("keypress", function (e) {
-      if (e.key === "Enter") {
-        if (!unlocked) {
-          alert("أدخل كلمة المرور أولاً 🔒");
-          checkPassword();
-        } else {
-          search();
-        }
+      if (e.key === "Enter" && unlocked) {
+        search();
       }
     });
 
@@ -154,12 +161,7 @@
           await codeReader.decodeFromVideoDevice(devices[0].deviceId, "cameraPreview", (result, err) => {
             if (result) {
               document.getElementById("searchBar").value = result.text;
-              if (!unlocked) {
-                checkPassword();
-              }
-              if (unlocked) {
-                search();
-              }
+              if (unlocked) search();
             }
           });
           cameraOn = true;
