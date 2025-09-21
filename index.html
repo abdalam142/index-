@@ -16,9 +16,6 @@
       width: 20px; height: 20px; border-radius: 50%;
       background-color: red;
     }
-    #cameraContainer {
-      margin: 10px;
-    }
     #cameraPreview {
       width: 120px; height: 90px; border: 1px solid #ccc;
       display: none;
@@ -39,7 +36,7 @@
   <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
 
   <!-- زر الكاميرا -->
-  <div id="cameraContainer">
+  <div>
     <button id="toggleCamera">📷 تشغيل/إيقاف الكاميرا</button><br>
     <video id="cameraPreview"></video>
   </div>
@@ -52,8 +49,22 @@
     let selectedSheet = "";
     let codeReader = null;
     let cameraOn = false;
+    let unlocked = false; // عشان الباسورد
 
     const fileStatus = document.getElementById("fileStatus");
+
+    // باسورد قبل أي عملية بحث
+    const PASSWORD = "1234"; // غير الباسورد ده زي ما تحب
+    function checkPassword() {
+      let pass = prompt("من فضلك أدخل كلمة المرور للمتابعة:");
+      if (pass === PASSWORD) {
+        unlocked = true;
+        alert("تم فتح البحث ✅");
+      } else {
+        alert("كلمة مرور خاطئة ❌");
+        checkPassword();
+      }
+    }
 
     // تحميل ملف الإكسل من GitHub RAW
     async function loadExcel() {
@@ -91,7 +102,14 @@
     });
 
     document.getElementById("searchBar").addEventListener("keypress", function (e) {
-      if (e.key === "Enter") search();
+      if (e.key === "Enter") {
+        if (!unlocked) {
+          alert("أدخل كلمة المرور أولاً 🔒");
+          checkPassword();
+        } else {
+          search();
+        }
+      }
     });
 
     function search() {
@@ -136,7 +154,12 @@
           await codeReader.decodeFromVideoDevice(devices[0].deviceId, "cameraPreview", (result, err) => {
             if (result) {
               document.getElementById("searchBar").value = result.text;
-              search();
+              if (!unlocked) {
+                checkPassword();
+              }
+              if (unlocked) {
+                search();
+              }
             }
           });
           cameraOn = true;
