@@ -2,8 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>بحث في ملف Excel</title>
+  <title>بحث في ملف Excel مع باركود</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; }
     #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; }
@@ -19,16 +20,38 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background-color: red; /* افتراضي: أحمر */
+      background-color: red;
       border: 2px solid #333;
+    }
+
+    /* مربع الكاميرا */
+    #cameraContainer {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      width: 120px;
+      height: 90px;
+      border: 2px solid #333;
+      overflow: hidden;
+      background: #000;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
   </style>
 </head>
 <body>
-  <h2>بحث في ملف Excel</h2>
-  
+  <h2>بحث في ملف Excel مع باركود</h2>
+
   <!-- مؤشر الحالة -->
   <div id="statusBox" title="ملف Excel غير متصل"></div>
+
+  <!-- معاينة الكاميرا -->
+  <div id="cameraContainer">
+    <video id="video" autoplay></video>
+  </div>
 
   <select id="sheetSelect"></select>
   <br>
@@ -41,7 +64,7 @@
 
     async function loadExcelFromGitHub() {
       try {
-        const response = await fetch("data.xlsx"); // الملف جنب index.html في الريبو
+        const response = await fetch("data.xlsx"); // لازم الملف يكون جنب index.html
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
@@ -67,7 +90,6 @@
         statusBox.title = "ملف Excel متصل";
       } catch (err) {
         console.error("خطأ في تحميل ملف الإكسل:", err);
-        // ❌ فشل التحميل → يبقى أحمر
         const statusBox = document.getElementById("statusBox");
         statusBox.style.backgroundColor = "red";
         statusBox.title = "ملف Excel غير متصل";
@@ -82,12 +104,11 @@
       const resultsTable = document.getElementById('results');
       resultsTable.innerHTML = '';
 
-      // الهيدر
       let headerRow = `<tr><th>A</th><th>B</th><th>C</th><th>D</th></tr>`;
       resultsTable.innerHTML = headerRow;
 
       rows.forEach((row, index) => {
-        if (index === 0) return; // تخطي الصف الأول (العناوين)
+        if (index === 0) return;
         let a = (row[0] || "").toString().toLowerCase();
         let b = (row[1] || "").toString();
         let c = (row[2] || "").toString().toLowerCase();
@@ -112,7 +133,35 @@
       if (e.key === 'Enter') search();
     });
 
-    // تحميل الملف أوتوماتيك عند فتح الصفحة
+    // 📷 تشغيل الكاميرا
+    const video = document.getElementById("video");
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => console.error("خطأ في تشغيل الكاميرا:", err));
+
+    // 🔍 قراءة الباركود (EAN كرقم عادي)
+    function scanBarcode() {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+      // هنا نستخدم jsQR (معظم الباركودات / QR)
+      const code = jsQR(imageData.data, canvas.width, canvas.height);
+      if (code) {
+        document.getElementById("searchBar").value = code.data;
+        search();
+      }
+      requestAnimationFrame(scanBarcode);
+    }
+
+    video.addEventListener("play", () => {
+      requestAnimationFrame(scanBarcode);
+    });
+
+    // تحميل الملف عند فتح الصفحة
     window.onload = loadExcelFromGitHub;
   </script>
 </body>
