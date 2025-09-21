@@ -2,108 +2,156 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>البحث بالكاميرا</title>
+  <title>بحث في ملف Excel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/@zxing/library@latest"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
-    #result { margin-top: 20px; font-size: 18px; font-weight: bold; }
-    #excel-status {
-      position: fixed; top: 10px; right: 10px;
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; }
+    #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; }
+    table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    #fileStatus {
+      position: absolute; top: 10px; right: 10px;
       width: 20px; height: 20px; border-radius: 50%;
-      border: 2px solid #333;
+      background-color: red;
     }
-    #camera { width: 300px; margin-top: 10px; display: none; }
-    #toggleCamera { margin-top: 10px; padding: 10px; }
+    #cameraContainer {
+      margin: 10px;
+    }
+    #cameraPreview {
+      width: 120px; height: 90px; border: 1px solid #ccc;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h2>البحث بالكاميرا</h2>
-  <div id="excel-status" style="background-color: red;" title="ملف الإكسل غير مُحمّل"></div>
-  <button id="toggleCamera">📷 فتح الكاميرا</button>
-  <video id="camera"></video>
-  <div id="result">النتيجة ستظهر هنا</div>
+  <h2>بحث في ملف Excel</h2>
+
+  <!-- مؤشر حالة الملف -->
+  <div id="fileStatus" title="حالة ملف Excel"></div>
+
+  <!-- اختيار الشيت -->
+  <select id="sheetSelect"></select>
+  <br>
+
+  <!-- مربع البحث -->
+  <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
+
+  <!-- زر الكاميرا -->
+  <div id="cameraContainer">
+    <button id="toggleCamera">📷 تشغيل/إيقاف الكاميرا</button><br>
+    <video id="cameraPreview"></video>
+  </div>
+
+  <!-- النتائج -->
+  <table id="results"></table>
 
   <script>
-    let excelData = null;
-    let firstSearch = true;
-    let stream = null;
-    const codeReader = new ZXing.BrowserMultiFormatReader();
+    let excelData = {};
+    let selectedSheet = "";
+    let codeReader = null;
+    let cameraOn = false;
 
-    // تحميل ملف الإكسل من GitHub
+    const fileStatus = document.getElementById("fileStatus");
+
+    // تحميل ملف الإكسل من GitHub RAW
     async function loadExcel() {
       try {
-        const response = await fetch("https://اسم-المستخدم.github.io/barcode-scanner/data.xlsx");
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-        document.getElementById("excel-status").style.backgroundColor = "green";
-        document.getElementById("excel-status").title = "ملف الإكسل مُحمّل";
-      } catch (e) {
-        console.error("خطأ في تحميل ملف الإكسل:", e);
+        const response = await fetch("https://raw.githubusercontent.com/abdalam142/index-/main/product.template%28176%29.xlsx");
+        const data = await response.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+
+        // تحديث القائمة
+        const sheetSelect = document.getElementById("sheetSelect");
+        sheetSelect.innerHTML = '';
+        workbook.SheetNames.forEach(name => {
+          let option = document.createElement("option");
+          option.value = name;
+          option.text = name;
+          sheetSelect.appendChild(option);
+        });
+        selectedSheet = workbook.SheetNames[0];
+
+        workbook.SheetNames.forEach(sheetName => {
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+          excelData[sheetName] = rows;
+        });
+
+        fileStatus.style.backgroundColor = "green";
+      } catch (err) {
+        console.error("فشل تحميل ملف الإكسل:", err);
+        fileStatus.style.backgroundColor = "red";
       }
     }
 
-    loadExcel();
-
-    // تشغيل/إيقاف الكاميرا
-    document.getElementById("toggleCamera").addEventListener("click", async () => {
-      const video = document.getElementById("camera");
-      if (video.style.display === "none") {
-        video.style.display = "block";
-        document.getElementById("toggleCamera").innerText = "❌ إغلاق الكاميرا";
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        video.srcObject = stream;
-        video.play();
-        startScanner(video);
-      } else {
-        video.style.display = "none";
-        document.getElementById("toggleCamera").innerText = "📷 فتح الكاميرا";
-        codeReader.reset();
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
-        }
-      }
+    document.getElementById("sheetSelect").addEventListener("change", () => {
+      selectedSheet = document.getElementById("sheetSelect").value;
     });
 
-    // تشغيل ماسح الباركود
-    function startScanner(video) {
-      codeReader.decodeFromVideoDevice(null, video, (result, err) => {
-        if (result) {
-          handleSearch(result.text);
+    document.getElementById("searchBar").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") search();
+    });
+
+    function search() {
+      const query = document.getElementById("searchBar").value.trim().toLowerCase();
+      if (!query || !selectedSheet) return;
+
+      const rows = excelData[selectedSheet];
+      const resultsTable = document.getElementById("results");
+      resultsTable.innerHTML = '';
+
+      // Create header row A-D
+      let headerRow = `<tr><th>A</th><th>B</th><th>C</th><th>D</th></tr>`;
+      resultsTable.innerHTML = headerRow;
+
+      rows.forEach((row, index) => {
+        if (index === 0) return; // skip header row
+        let a = (row[0] || "").toString().toLowerCase();
+        let b = (row[1] || "").toString();
+        let c = (row[2] || "").toString().toLowerCase();
+        let d = (row[3] || "").toString().toLowerCase();
+
+        if (a.includes(query) || c.includes(query) || d.includes(query)) {
+          let tr = `<tr><td>${row[0] || ''}</td><td>${row[1] || ''}</td><td>${row[2] || ''}</td><td>${row[3] || ''}</td></tr>`;
+          resultsTable.innerHTML += tr;
         }
       });
     }
 
-    // البحث في ملف الإكسل
-    function handleSearch(code) {
-      if (!excelData) {
-        document.getElementById("result").innerText = "⚠️ ملف الإكسل غير جاهز.";
-        return;
-      }
+    // تشغيل/إيقاف الكاميرا
+    document.getElementById("toggleCamera").addEventListener("click", async () => {
+      const videoElem = document.getElementById("cameraPreview");
 
-      if (firstSearch) {
-        const pass = prompt("أدخل كلمة السر:");
-        if (pass !== "1234") {
-          document.getElementById("result").innerText = "❌ كلمة السر غير صحيحة";
-          return;
+      if (!cameraOn) {
+        codeReader = new ZXing.BrowserMultiFormatReader();
+        videoElem.style.display = "block";
+        try {
+          const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
+          if (devices.length === 0) {
+            alert("لا توجد كاميرا متاحة");
+            return;
+          }
+          await codeReader.decodeFromVideoDevice(devices[0].deviceId, "cameraPreview", (result, err) => {
+            if (result) {
+              document.getElementById("searchBar").value = result.text;
+              search();
+            }
+          });
+          cameraOn = true;
+        } catch (error) {
+          console.error("خطأ في تشغيل الكاميرا:", error);
         }
-        firstSearch = false;
+      } else {
+        codeReader.reset();
+        videoElem.style.display = "none";
+        cameraOn = false;
       }
+    });
 
-      let found = false;
-      for (let i = 1; i < excelData.length; i++) {
-        if (excelData[i][0] == code) {
-          document.getElementById("result").innerText = "✅ موجود: " + excelData[i].join(" | ");
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        document.getElementById("result").innerText = "❌ غير موجود";
-      }
-    }
+    // تحميل الملف عند فتح الصفحة
+    loadExcel();
   </script>
 </body>
 </html>
