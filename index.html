@@ -4,179 +4,138 @@
   <meta charset="UTF-8">
   <title>بحث في ملف Excel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; }
-    #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; }
-    table { width: 80%; margin: 20px auto; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #f2f2f2; }
-    #fileStatus {
-      position: absolute; top: 10px; right: 10px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background-color: red;
-    }
-    #cameraPreview {
-      width: 120px; height: 90px; border: 1px solid #ccc;
-      display: none;
-    }
-    #protectedContent { display: none; }
-    #loginBox { margin-top: 100px; }
+    #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; display:none; }
+    #results { width: 80%; margin: 20px auto; border-collapse: collapse; }
+    #results th, #results td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    #results th { background-color: #f2f2f2; }
+    #status { position: fixed; top: 10px; right: 10px; padding: 6px 12px; border-radius: 5px; color: white; font-weight: bold; }
+    #status.active { background: green; }
+    #status.inactive { background: red; }
+    #cameraBtn { margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+    #cameraPreview { width: 150px; height: 100px; border: 1px solid #ccc; margin-top: 10px; display:none; }
+    #passwordBox { margin-top:20px; }
   </style>
 </head>
 <body>
   <h2>بحث في ملف Excel</h2>
 
   <!-- مؤشر حالة الملف -->
-  <div id="fileStatus" title="حالة ملف Excel"></div>
+  <div id="status" class="inactive">لا يوجد ملف فعال</div>
 
-  <!-- مربع تسجيل الدخول -->
-  <div id="loginBox">
-    <h3>أدخل كلمة المرور للمتابعة</h3>
-    <input type="password" id="passwordInput" placeholder="كلمة المرور">
+  <!-- إدخال الباسورد -->
+  <div id="passwordBox">
+    <input type="password" id="passwordInput" placeholder="ادخل كلمة المرور">
     <button onclick="checkPassword()">دخول</button>
   </div>
 
-  <!-- المحتوى المحمي -->
-  <div id="protectedContent">
-    <!-- اختيار الشيت -->
-    <select id="sheetSelect"></select>
-    <br>
+  <!-- مربع البحث -->
+  <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
 
-    <!-- مربع البحث -->
-    <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
-
-    <!-- زر الكاميرا -->
-    <div>
-      <button id="toggleCamera">📷 تشغيل/إيقاف الكاميرا</button><br>
-      <video id="cameraPreview"></video>
-    </div>
-
-    <!-- النتائج -->
-    <table id="results"></table>
+  <!-- زر الكاميرا والمعاينة -->
+  <div>
+    <button id="cameraBtn" onclick="toggleCamera()">تشغيل/إيقاف الكاميرا</button>
+    <video id="cameraPreview" autoplay></video>
   </div>
 
+  <!-- الجدول -->
+  <table id="results"></table>
+
   <script>
-    let excelData = {};
-    let selectedSheet = "";
-    let codeReader = null;
-    let cameraOn = false;
-    let unlocked = false;
+    let excelData = [];
+    let videoStream = null;
 
-    const fileStatus = document.getElementById("fileStatus");
+    const statusEl = document.getElementById('status');
+    const searchBar = document.getElementById('searchBar');
 
-    // باسورد
-    const PASSWORD = "1234"; // غير الباسورد زي ما تحب
+    // خريطة أسماء الأعمدة
+    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code"];
+
+    // تحميل ملف Excel من GitHub Pages
+    fetch("product.template(176).xlsx")
+      .then(res => res.arrayBuffer())
+      .then(data => {
+        const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
+        const firstSheet = workbook.SheetNames[0];
+        excelData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+        statusEl.textContent = "ملف فعال";
+        statusEl.className = "active";
+      })
+      .catch(err => {
+        statusEl.textContent = "لا يوجد ملف فعال";
+        statusEl.className = "inactive";
+      });
+
+    // التحقق من الباسورد
     function checkPassword() {
-      let pass = document.getElementById("passwordInput").value;
-      if (pass === PASSWORD) {
-        unlocked = true;
-        document.getElementById("loginBox").style.display = "none";
-        document.getElementById("protectedContent").style.display = "block";
+      const pass = document.getElementById('passwordInput').value;
+      if (pass === "1234") { // غير كلمة المرور هنا
+        document.getElementById('passwordBox').style.display = "none";
+        searchBar.style.display = "inline-block";
       } else {
-        alert("كلمة مرور خاطئة ❌");
+        alert("كلمة المرور غير صحيحة");
       }
     }
 
-    // تحميل ملف الإكسل من GitHub RAW
-    async function loadExcel() {
-      try {
-        const response = await fetch("https://raw.githubusercontent.com/abdalam142/index-/main/product.template%28176%29.xlsx");
-        const data = await response.arrayBuffer();
-        const workbook = XLSX.read(data, { type: "array" });
-
-        // تحديث القائمة
-        const sheetSelect = document.getElementById("sheetSelect");
-        sheetSelect.innerHTML = '';
-        workbook.SheetNames.forEach(name => {
-          let option = document.createElement("option");
-          option.value = name;
-          option.text = name;
-          sheetSelect.appendChild(option);
-        });
-        selectedSheet = workbook.SheetNames[0];
-
-        workbook.SheetNames.forEach(sheetName => {
-          const sheet = workbook.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-          excelData[sheetName] = rows;
-        });
-
-        fileStatus.style.backgroundColor = "green";
-      } catch (err) {
-        console.error("فشل تحميل ملف الإكسل:", err);
-        fileStatus.style.backgroundColor = "red";
-      }
-    }
-
-    document.getElementById("sheetSelect").addEventListener("change", () => {
-      selectedSheet = document.getElementById("sheetSelect").value;
-    });
-
-    document.getElementById("searchBar").addEventListener("keypress", function (e) {
-      if (e.key === "Enter" && unlocked) {
-        search();
-      }
+    // البحث
+    searchBar.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') search();
     });
 
     function search() {
-      const query = document.getElementById("searchBar").value.trim().toLowerCase();
-      if (!query || !selectedSheet) return;
+      const query = searchBar.value.trim().toLowerCase();
+      if (!query || excelData.length === 0) return;
 
-      const rows = excelData[selectedSheet];
-      const resultsTable = document.getElementById("results");
-      resultsTable.innerHTML = '';
+      const resultsTable = document.getElementById('results');
+      resultsTable.innerHTML = "";
 
-      // Create header row A-D
-      let headerRow = `<tr><th>A</th><th>B</th><th>C</th><th>D</th></tr>`;
+      // إضافة العناوين
+      let headerRow = "<tr>";
+      headers.forEach(h => headerRow += `<th>${h}</th>`);
+      headerRow += "</tr>";
       resultsTable.innerHTML = headerRow;
 
-      rows.forEach((row, index) => {
-        if (index === 0) return; // skip header row
+      // البحث في البيانات
+      excelData.forEach((row, index) => {
+        if (index === 0) return; // تجاهل أول صف من الملف
         let a = (row[0] || "").toString().toLowerCase();
         let b = (row[1] || "").toString();
         let c = (row[2] || "").toString().toLowerCase();
         let d = (row[3] || "").toString().toLowerCase();
 
         if (a.includes(query) || c.includes(query) || d.includes(query)) {
-          let tr = `<tr><td>${row[0] || ''}</td><td>${row[1] || ''}</td><td>${row[2] || ''}</td><td>${row[3] || ''}</td></tr>`;
+          let tr = `<tr>
+            <td>${row[0] || ''}</td>
+            <td>${row[1] || ''}</td>
+            <td>${row[2] || ''}</td>
+            <td>${row[3] || ''}</td>
+          </tr>`;
           resultsTable.innerHTML += tr;
         }
       });
     }
 
-    // تشغيل/إيقاف الكاميرا
-    document.getElementById("toggleCamera").addEventListener("click", async () => {
-      const videoElem = document.getElementById("cameraPreview");
-
-      if (!cameraOn) {
-        codeReader = new ZXing.BrowserMultiFormatReader();
-        videoElem.style.display = "block";
-        try {
-          const devices = await ZXing.BrowserMultiFormatReader.listVideoInputDevices();
-          if (devices.length === 0) {
-            alert("لا توجد كاميرا متاحة");
-            return;
-          }
-          await codeReader.decodeFromVideoDevice(devices[0].deviceId, "cameraPreview", (result, err) => {
-            if (result) {
-              document.getElementById("searchBar").value = result.text;
-              if (unlocked) search();
-            }
-          });
-          cameraOn = true;
-        } catch (error) {
-          console.error("خطأ في تشغيل الكاميرا:", error);
-        }
+    // الكاميرا
+    function toggleCamera() {
+      const video = document.getElementById('cameraPreview');
+      if (videoStream) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        videoStream = null;
+        video.style.display = "none";
       } else {
-        codeReader.reset();
-        videoElem.style.display = "none";
-        cameraOn = false;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+          .then(stream => {
+            video.srcObject = stream;
+            videoStream = stream;
+            video.style.display = "block";
+          })
+          .catch(err => {
+            alert("لم يتم تشغيل الكاميرا: " + err);
+          });
       }
-    });
-
-    // تحميل الملف عند فتح الصفحة
-    loadExcel();
+    }
   </script>
 </body>
 </html>
