@@ -3,20 +3,105 @@
 <head>
   <meta charset="UTF-8">
   <title>بحث في ملف Excel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- مهم للموبايل -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; }
-    #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; display:none; }
-    #results { width: 80%; margin: 20px auto; border-collapse: collapse; }
-    #results th, #results td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    body { 
+      font-family: Arial, sans-serif; 
+      text-align: center; 
+      padding: 20px; 
+      direction: rtl; 
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+
+    #searchBar { 
+      width: 100%; 
+      max-width: 500px; 
+      padding: 10px; 
+      font-size: 16px; 
+      margin-top: 20px; 
+      display:none; 
+      box-sizing: border-box;
+    }
+
+    #results { 
+      width: 100%; 
+      margin: 20px auto; 
+      border-collapse: collapse; 
+      overflow-x: auto; 
+      display: block;
+    }
+    #results th, #results td { 
+      border: 1px solid #ccc; 
+      padding: 8px; 
+      text-align: center; 
+      font-size: 14px;
+      word-break: break-word;
+    }
     #results th { background-color: #f2f2f2; }
-    #status { position: fixed; top: 10px; right: 10px; padding: 6px 12px; border-radius: 5px; color: white; font-weight: bold; }
+
+    #status { 
+      position: fixed; 
+      top: 10px; 
+      right: 10px; 
+      padding: 6px 12px; 
+      border-radius: 5px; 
+      color: white; 
+      font-weight: bold; 
+      font-size: 14px;
+    }
     #status.active { background: green; }
     #status.inactive { background: red; }
-    #cameraBtn { margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
-    #cameraPreview { width: 150px; height: 100px; border: 1px solid #ccc; margin-top: 10px; display:none; }
-    #passwordBox { margin-top:20px; }
+
+    #cameraBtn { 
+      margin-top: 10px; 
+      padding: 10px 15px; 
+      border: none; 
+      border-radius: 5px; 
+      background: #007bff; 
+      color: white; 
+      cursor: pointer; 
+      font-size: 14px;
+    }
+
+    #cameraPreview { 
+      width: 100%; 
+      max-width: 350px; 
+      height: auto; 
+      border: 1px solid #ccc; 
+      margin-top: 10px; 
+      display:none; 
+    }
+
+    #passwordBox { 
+      margin-top:20px; 
+    }
+    #passwordInput {
+      padding: 8px;
+      font-size: 14px;
+      width: 70%;
+      max-width: 250px;
+      box-sizing: border-box;
+    }
+    #passwordBox button {
+      padding: 8px 12px;
+      margin-right: 5px;
+      font-size: 14px;
+    }
+
+    /* Media Queries */
+    @media (max-width: 600px) {
+      h2 { font-size: 1.2rem; }
+      #results th, #results td { font-size: 12px; padding: 6px; }
+      #cameraBtn { width: 100%; max-width: 300px; }
+      #status { font-size: 12px; padding: 4px 8px; }
+    }
   </style>
 </head>
 <body>
