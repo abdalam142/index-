@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>صفحة البحث</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      margin: 20px;
+    }
+    .hidden { display: none; }
+    .container {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+    .actions button {
+      margin: 2px;
+    }
+    #resultsTableWrapper, #selectedTableWrapper {
+      width: 48%;
+    }
+    .login {
+      text-align: center;
+      margin-top: 100px;
+    }
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 60px);
+      gap: 5px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .numpad button {
+      font-size: 18px;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- صفحة تسجيل الدخول -->
+  <div id="loginPage" class="login">
+    <h2>أدخل كلمة المرور</h2>
+    <input type="password" id="passwordInput" readonly>
+    <div class="numpad">
+      <button onclick="addNumber('1')">1</button>
+      <button onclick="addNumber('2')">2</button>
+      <button onclick="addNumber('3')">3</button>
+      <button onclick="addNumber('4')">4</button>
+      <button onclick="addNumber('5')">5</button>
+      <button onclick="addNumber('6')">6</button>
+      <button onclick="addNumber('7')">7</button>
+      <button onclick="addNumber('8')">8</button>
+      <button onclick="addNumber('9')">9</button>
+      <button onclick="clearInput()">حذف</button>
+      <button onclick="addNumber('0')">0</button>
+      <button onclick="checkPassword()">دخول</button>
+    </div>
+  </div>
+
+  <!-- الصفحة الرئيسية -->
+  <div id="mainPage" class="hidden">
+    <div class="container">
+      <!-- جدول البحث -->
+      <div id="resultsTableWrapper">
+        <h3>نتائج البحث</h3>
+        <input type="text" id="searchInput" placeholder="ابحث هنا...">
+        <button onclick="clearSearch()">حذف</button>
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>اسم المنتج</th>
+              <th>السعر</th>
+              <th>كود الميزان</th>
+              <th>QR</th>
+              <th>إضافة</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- جدول النتائج (الشمال) -->
+      <div id="selectedTableWrapper">
+        <h3>المنتجات المختارة</h3>
+        <table id="selectedTable">
+          <thead>
+            <tr>
+              <th>اسم المنتج</th>
+              <th>السعر</th>
+              <th>كود الميزان</th>
+              <th>QR</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const correctPassword = "1234"; 
+    const passwordInput = document.getElementById("passwordInput");
+    const loginPage = document.getElementById("loginPage");
+    const mainPage = document.getElementById("mainPage");
+
+    function addNumber(num) {
+      passwordInput.value += num;
+    }
+    function clearInput() {
+      passwordInput.value = "";
+    }
+    function checkPassword() {
+      if(passwordInput.value === correctPassword){
+        loginPage.classList.add("hidden");
+        mainPage.classList.remove("hidden");
+        loadSelected(); // تحميل المنتجات المختارة من LocalStorage
+      } else {
+        alert("كلمة المرور غير صحيحة");
+      }
+    }
+
+    function clearSearch() {
+      document.getElementById("searchInput").value = "";
+      document.querySelector("#resultsTable tbody").innerHTML = "";
+    }
+
+    // بيانات افتراضية
+    const products = [
+      {name: "منتج 1", price: "10", code: "111", qr: "QR111"},
+      {name: "منتج 2", price: "20", code: "222", qr: "QR222"},
+      {name: "منتج 3", price: "30", code: "333", qr: "QR333"}
+    ];
+
+    const resultsBody = document.querySelector("#resultsTable tbody");
+    const selectedBody = document.querySelector("#selectedTable tbody");
+
+    document.getElementById("searchInput").addEventListener("input", function() {
+      const val = this.value.toLowerCase();
+      resultsBody.innerHTML = "";
+      products.forEach(p => {
+        if(p.name.toLowerCase().includes(val) || p.qr.toLowerCase() === val){
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${p.name}</td>
+            <td>${p.price}</td>
+            <td>${p.code}</td>
+            <td>${p.qr}</td>
+            <td><button onclick='addToSelected(${JSON.stringify(p)})'>إضافة</button></td>
+          `;
+          resultsBody.appendChild(row);
+
+          if(p.qr.toLowerCase() === val){ // إذا البحث بالQR
+            addToSelected(p);
+          }
+        }
+      });
+    });
+
+    function addToSelected(product){
+      // التحقق إذا موجود مسبقاً
+      const existing = Array.from(selectedBody.querySelectorAll("tr")).some(tr => tr.cells[3].textContent === product.qr);
+      if(existing) return;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${product.name}</td>
+        <td>${product.price}</td>
+        <td>${product.code}</td>
+        <td>${product.qr}</td>
+        <td><button onclick="removeSelected(this)">حذف</button></td>
+      `;
+      selectedBody.appendChild(row);
+      saveSelected();
+    }
+
+    function removeSelected(btn){
+      btn.parentElement.parentElement.remove();
+      saveSelected();
+    }
+
+    function saveSelected(){
+      const data = Array.from(selectedBody.querySelectorAll("tr")).map(tr => ({
+        name: tr.cells[0].textContent,
+        price: tr.cells[1].textContent,
+        code: tr.cells[2].textContent,
+        qr: tr.cells[3].textContent
+      }));
+      localStorage.setItem("selectedProducts", JSON.stringify(data));
+    }
+
+    function loadSelected(){
+      const data = JSON.parse(localStorage.getItem("selectedProducts") || "[]");
+      data.forEach(p => addToSelected(p));
+    }
+  </script>
+</body>
+</html>
