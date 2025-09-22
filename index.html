@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>نظام البحث عن المنتجات</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,7 +15,7 @@
       padding: 0;
     }
     h2 { margin-top: 20px; }
-    #passwordSection, #searchSection { margin: 20px; }
+    #passwordSection, #mainContent { margin: 20px; }
     input, button {
       padding: 10px;
       margin: 5px;
@@ -30,18 +30,28 @@
     th, td {
       border: 1px solid #ccc;
       padding: 10px;
+      cursor: pointer;
     }
-    #camera {
-      width: 300px;
-      height: 200px;
-      margin: 20px auto;
-      background: #000;
+    #reader {
+      width: 250px;
+      margin: 10px auto;
+      display: none;
+    }
+    #excelStatus {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: red;
     }
   </style>
 </head>
 <body>
 
   <h2>📦 نظام البحث عن المنتجات</h2>
+  <div id="excelStatus" title="حالة ملف الإكسل"></div>
 
   <!-- باسورد -->
   <div id="passwordSection">
@@ -49,31 +59,33 @@
     <button onclick="checkPassword()">دخول</button>
   </div>
 
-  <!-- البحث -->
-  <div id="searchSection" style="display:none;">
+  <!-- المحتوى الأساسي -->
+  <div id="mainContent" style="display:none;">
     <input type="text" id="searchBox" placeholder="ابحث باسم المنتج أو السعر أو الكود أو QR">
     <button onclick="document.getElementById('searchBox').value='';displayData(products);">عرض الكل</button>
-    
-    <!-- الكاميرا -->
-    <div id="camera"></div>
-  </div>
+    <button onclick="toggleCamera()">📷 تشغيل/إيقاف الكاميرا</button>
+    <div id="reader"></div>
 
-  <table id="dataTable">
-    <thead>
-      <tr>
-        <th>اسم المنتج</th>
-        <th>سعر المنتج</th>
-        <th>كود الميزان</th>
-        <th>QR / Barcode</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>اسم المنتج</th>
+          <th>سعر المنتج</th>
+          <th id="filterC">كود الميزان</th>
+          <th>QR Code</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
     let products = [];
+    let filteredData = [];
+    let excelLoaded = false;
+    let filterCActive = false;
 
-    // قراءة ملف Excel
+    // قراءة ملف Excel من GitHub
     fetch("product.template(176).xlsx")
       .then(res => res.arrayBuffer())
       .then(data => {
@@ -81,10 +93,12 @@
         let sheet = workbook.Sheets[workbook.SheetNames[0]];
         products = XLSX.utils.sheet_to_json(sheet, {header:1});
         products.shift(); // إزالة الصف الأول (العناوين)
+        excelLoaded = true;
+        document.getElementById("excelStatus").style.background = "green";
         displayData(products);
       });
 
-    // عرض البيانات في الجدول
+    // عرض البيانات
     function displayData(data) {
       let tbody = document.querySelector("#dataTable tbody");
       tbody.innerHTML = "";
@@ -97,6 +111,7 @@
         }
         tbody.appendChild(tr);
       });
+      filteredData = data;
     }
 
     // باسورد
@@ -104,14 +119,13 @@
       let pass = document.getElementById("passwordInput").value;
       if (pass === "1234") {
         document.getElementById("passwordSection").style.display = "none";
-        document.getElementById("searchSection").style.display = "block";
-        startScanner();
+        document.getElementById("mainContent").style.display = "block";
       } else {
         alert("❌ كلمة المرور غير صحيحة");
       }
     }
 
-    // بحث
+    // بحث لايف
     document.getElementById("searchBox").addEventListener("input", function(){
       let value = this.value.toLowerCase();
       let filtered = products.filter(row => 
@@ -120,38 +134,61 @@
       displayData(filtered);
     });
 
-    // QuaggaJS لقراءة الباركود
-    function startScanner() {
-      Quagga.init({
-        inputStream: {
-          name: "Live",
-          type: "LiveStream",
-          target: document.querySelector('#camera'),
-          constraints: {
-            width: 300,
-            height: 200,
-            facingMode: "environment"
-          }
-        },
-        decoder: {
-          readers: ["ean_reader", "code128_reader", "upc_reader", "code39_reader"]
-        }
-      }, function(err) {
-        if (err) {
-          console.error(err);
-          return;
-        }
-        Quagga.start();
-      });
-
-      Quagga.onDetected(data => {
-        let code = data.codeResult.code;
-        document.getElementById("searchBox").value = code;
-        let filtered = products.filter(row => 
-          row.some(cell => (cell || "").toString().toLowerCase().includes(code.toLowerCase()))
-        );
+    // فلترة كود الميزان
+    document.getElementById("filterC").addEventListener("click", function() {
+      if (!filterCActive) {
+        let filtered = filteredData.filter(row => row[2] && row[2].toString().trim() !== "");
         displayData(filtered);
-      });
+        filterCActive = true;
+        this.style.background = "#d1ffd1";
+      } else {
+        displayData(products);
+        filterCActive = false;
+        this.style.background = "";
+      }
+    });
+
+    // QR/Barcode Reader
+    let html5QrCode;
+    let cameraRunning = false;
+
+    function onScanSuccess(code) {
+      document.getElementById("searchBox").value = code;
+      let filtered = products.filter(row => 
+        row.some(cell => (cell || "").toString().toLowerCase().includes(code.toLowerCase()))
+      );
+      displayData(filtered);
+    }
+
+    function onScanError(errorMessage) {
+      // تجاهل
+    }
+
+    function toggleCamera() {
+      if (cameraRunning) {
+        html5QrCode.stop().then(() => {
+          document.getElementById("reader").style.display = "none";
+          cameraRunning = false;
+        });
+      } else {
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode("reader");
+        }
+        Html5Qrcode.getCameras().then(devices => {
+          if (devices && devices.length) {
+            let cameraId = devices[0].id;
+            html5QrCode.start(
+              cameraId,
+              { fps: 10, qrbox: 200 },
+              onScanSuccess,
+              onScanError
+            ).then(() => {
+              document.getElementById("reader").style.display = "block";
+              cameraRunning = true;
+            });
+          }
+        });
+      }
     }
   </script>
 
