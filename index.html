@@ -2,16 +2,15 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>بحث في ملف Excel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; display: flex; justify-content: space-between; }
-    #searchContainer, #resultsContainer { width: 45%; }
-    #searchBar { width: 70%; padding: 10px; font-size: 16px; margin-top: 20px; display:none; }
-    #clearBtn { padding: 10px 15px; margin-top: 20px; display:none; }
-    table { width: 100%; margin: 20px auto; border-collapse: collapse; }
+    body { font-family: Arial, sans-serif; padding: 20px; direction: rtl; }
+    #app { display: none; }
+    #searchBar { width: 50%; padding: 10px; font-size: 16px; margin-top: 20px; }
+    #clearBtn { padding: 10px; margin-right: 5px; }
+    table { border-collapse: collapse; margin: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background-color: #f2f2f2; }
     #status { position: fixed; top: 10px; right: 10px; padding: 6px 12px; border-radius: 5px; color: white; font-weight: bold; }
@@ -19,25 +18,28 @@
     #status.inactive { background: red; }
     #cameraBtn { margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
     #cameraPreview { width: 150px; height: 100px; border: 1px solid #ccc; margin-top: 10px; display:none; }
-    #passwordBox { margin-top:20px; }
-    .actions { margin-top: 10px; }
+    #passwordBox { margin-top:20px; text-align: center; }
+    #container { display: flex; justify-content: space-between; }
+    #resultsTable { flex: 1; }
+    #finalTable { flex: 1; }
+    button { cursor: pointer; }
   </style>
 </head>
 <body>
-  <!-- البحث يمين -->
-  <div id="searchContainer">
-    <h2>بحث في ملف Excel</h2>
+  <h2>بحث في ملف Excel</h2>
 
-    <!-- مؤشر حالة الملف -->
-    <div id="status" class="inactive">لا يوجد ملف فعال</div>
+  <!-- مؤشر حالة الملف -->
+  <div id="status" class="inactive">لا يوجد ملف فعال</div>
 
-    <!-- إدخال الباسورد -->
-    <div id="passwordBox">
-      <input type="password" id="passwordInput" placeholder="ادخل كلمة المرور">
-      <button onclick="checkPassword()">دخول</button>
-    </div>
+  <!-- إدخال الباسورد -->
+  <div id="passwordBox">
+    <input type="password" id="passwordInput" placeholder="ادخل كلمة المرور">
+    <button onclick="checkPassword()">دخول</button>
+  </div>
 
-    <!-- مربع البحث + زر الحذف -->
+  <!-- كل الصفحة تحت الباسورد -->
+  <div id="app">
+    <!-- مربع البحث -->
     <div>
       <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
       <button id="clearBtn" onclick="clearSearch()">حذف</button>
@@ -50,27 +52,19 @@
       <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
-    <!-- الجدول -->
-    <table id="results"></table>
-  </div>
-
-  <!-- النتائج المتجمعة شمال -->
-  <div id="resultsContainer">
-    <h2>النتائج</h2>
-    <div class="actions">
-      <button onclick="clearResults()">مسح الكل</button>
-    </div>
-    <table id="finalResults">
-      <thead>
+    <!-- الجداول -->
+    <div id="container">
+      <table id="resultsTable"></table>
+      <table id="finalTable">
         <tr>
           <th>اسم المنتج</th>
           <th>سعر المنتج</th>
           <th>كود الميزان</th>
           <th>QR Code</th>
+          <th>حذف</th>
         </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -80,13 +74,13 @@
 
     const statusEl = document.getElementById('status');
     const searchBar = document.getElementById('searchBar');
-    const clearBtn = document.getElementById('clearBtn');
-    const finalResults = document.getElementById("finalResults").querySelector("tbody");
+    const resultsTable = document.getElementById('resultsTable');
+    const finalTable = document.getElementById('finalTable');
 
     // خريطة أسماء الأعمدة
-    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code"];
+    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code", "إضافة"];
 
-    // تحميل ملف Excel من GitHub Pages
+    // تحميل ملف Excel
     fetch("product.template(176).xlsx")
       .then(res => res.arrayBuffer())
       .then(data => {
@@ -96,7 +90,7 @@
         statusEl.textContent = "ملف فعال";
         statusEl.className = "active";
       })
-      .catch(err => {
+      .catch(() => {
         statusEl.textContent = "لا يوجد ملف فعال";
         statusEl.className = "inactive";
       });
@@ -106,22 +100,10 @@
       const pass = document.getElementById('passwordInput').value;
       if (pass === "1234") {
         document.getElementById('passwordBox').style.display = "none";
-        searchBar.style.display = "inline-block";
-        clearBtn.style.display = "inline-block";
+        document.getElementById('app').style.display = "block";
       } else {
         alert("كلمة المرور غير صحيحة");
       }
-    }
-
-    // مسح خانة البحث
-    function clearSearch() {
-      searchBar.value = "";
-      document.getElementById("results").innerHTML = "";
-    }
-
-    // مسح النتائج المتجمعة
-    function clearResults() {
-      finalResults.innerHTML = "";
     }
 
     // البحث
@@ -129,11 +111,15 @@
       if (e.key === 'Enter') search();
     });
 
-    function search() {
+    function clearSearch() {
+      searchBar.value = "";
+      resultsTable.innerHTML = "";
+    }
+
+    function search(isFromQR = false) {
       const query = searchBar.value.trim().toLowerCase();
       if (!query || excelData.length === 0) return;
 
-      const resultsTable = document.getElementById('results');
       resultsTable.innerHTML = "";
 
       // إضافة العناوين
@@ -142,7 +128,7 @@
       headerRow += "</tr>";
       resultsTable.innerHTML = headerRow;
 
-      // البحث في البيانات
+      // البحث
       excelData.forEach((row, index) => {
         if (index === 0) return;
         let a = (row[0] || "").toString().toLowerCase();
@@ -151,25 +137,33 @@
         let d = (row[3] || "").toString().toLowerCase();
 
         if (a.includes(query) || c.includes(query) || d.includes(query)) {
-          let tr = `<tr>
+          let tr = document.createElement("tr");
+          tr.innerHTML = `
             <td>${row[0] || ''}</td>
             <td>${row[1] || ''}</td>
             <td>${row[2] || ''}</td>
             <td>${row[3] || ''}</td>
-          </tr>`;
-          resultsTable.innerHTML += tr;
-
-          // إضافة النتيجة في الجدول الشمال (يتجمع)
-          let resultRow = document.createElement("tr");
-          resultRow.innerHTML = `
-            <td>${row[0] || ''}</td>
-            <td>${row[1] || ''}</td>
-            <td>${row[2] || ''}</td>
-            <td>${row[3] || ''}</td>
+            <td><button onclick='addToFinal(${JSON.stringify(row)})'>إضافة</button></td>
           `;
-          finalResults.appendChild(resultRow);
+          resultsTable.appendChild(tr);
+
+          // لو البحث من QR → أضف مباشرة
+          if (isFromQR) addToFinal(row);
         }
       });
+    }
+
+    // إضافة للجدول النهائي
+    function addToFinal(row) {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row[0] || ''}</td>
+        <td>${row[1] || ''}</td>
+        <td>${row[2] || ''}</td>
+        <td>${row[3] || ''}</td>
+        <td><button onclick="this.parentElement.parentElement.remove()">حذف</button></td>
+      `;
+      finalTable.appendChild(tr);
     }
 
     // الكاميرا + قراءة QR
@@ -208,7 +202,7 @@
 
           if (code) {
             searchBar.value = code.data;
-            search();
+            search(true); // بحث من QR
             scanning = false;
             toggleCamera();
             return;
