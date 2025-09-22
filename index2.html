@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحة البحث</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+    }
+    .container {
+      width: 45%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: center;
+    }
+    .search-box {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 5px;
+    }
+    .search-box button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .actions {
+      margin-top: 10px;
+      text-align: left;
+    }
+    .actions button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- الجدول اليمين (بحث) -->
+  <div class="container" id="searchContainer">
+    <h2>البحث</h2>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="ابحث عن منتج">
+      <button onclick="clearSearch()">حذف</button>
+    </div>
+    <table id="searchTable">
+      <thead>
+        <tr>
+          <th>اسم المنتج</th>
+          <th>سعر المنتج</th>
+          <th>كود الميزان</th>
+          <th>QR Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- نتائج البحث تظهر هنا -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- الجدول الشمال (النتائج النهائية) -->
+  <div class="container" id="resultsContainer">
+    <h2>النتائج</h2>
+    <div class="actions">
+      <button onclick="clearResults()">مسح الكل</button>
+    </div>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>اسم المنتج</th>
+          <th>سعر المنتج</th>
+          <th>كود الميزان</th>
+          <th>QR Code</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- المنتجات اللي تم العثور عليها تتجمع هنا -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // بيانات تجريبية
+    const products = [
+      { name: "تفاح", price: "20", code: "111", qr: "QR111" },
+      { name: "موز", price: "15", code: "222", qr: "QR222" },
+      { name: "برتقال", price: "25", code: "333", qr: "QR333" }
+    ];
+
+    const searchInput = document.getElementById("searchInput");
+    const searchTable = document.getElementById("searchTable").querySelector("tbody");
+    const resultsTable = document.getElementById("resultsTable").querySelector("tbody");
+
+    // زر الحذف (خانة البحث)
+    function clearSearch() {
+      searchInput.value = "";
+      searchTable.innerHTML = "";
+    }
+
+    // زر مسح الكل (الجدول الشمال)
+    function clearResults() {
+      resultsTable.innerHTML = "";
+    }
+
+    // البحث عند الضغط على Enter
+    searchInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        searchProduct();
+      }
+    });
+
+    // البحث وعرض النتائج
+    function searchProduct() {
+      const query = searchInput.value.trim();
+      searchTable.innerHTML = "";
+
+      if (query === "") return;
+
+      const found = products.filter(p =>
+        p.name.includes(query) || p.code === query || p.qr === query
+      );
+
+      if (found.length > 0) {
+        found.forEach(product => {
+          // عرض النتيجة في جدول البحث (يمين)
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.price}</td>
+            <td>${product.code}</td>
+            <td>${product.qr}</td>
+          `;
+          searchTable.appendChild(row);
+
+          // إضافة النتيجة لجدول الشمال (يتجمع)
+          const resultRow = document.createElement("tr");
+          resultRow.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.price}</td>
+            <td>${product.code}</td>
+            <td>${product.qr}</td>
+          `;
+          resultsTable.appendChild(resultRow);
+        });
+      } else {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="4">لا توجد نتائج</td>`;
+        searchTable.appendChild(row);
+      }
+    }
+  </script>
+
+</body>
+</html>
