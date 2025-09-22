@@ -156,7 +156,11 @@
             <td><button onclick='addToSelected(${JSON.stringify(row)})'>إضافة</button></td>
           `;
           resultsTable.appendChild(tr);
-          if (isQR) addToSelected(row);
+
+          // يضاف تلقائيًا إذا البحث كان بالكاميرا أو كان البحث متطابق مع عمود QR Code
+          if (isQR || d.includes(query)) {
+            addToSelected(row);
+          }
         }
       });
     }
