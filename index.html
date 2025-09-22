@@ -38,6 +38,7 @@
   <div>
     <button id="cameraBtn" onclick="toggleCamera()">تشغيل/إيقاف الكاميرا</button>
     <video id="cameraPreview" autoplay></video>
+    <canvas id="canvas" style="display:none;"></canvas>
   </div>
 
   <!-- الجدول -->
@@ -46,6 +47,7 @@
   <script>
     let excelData = [];
     let videoStream = null;
+    let scanning = false;
 
     const statusEl = document.getElementById('status');
     const searchBar = document.getElementById('searchBar');
@@ -117,23 +119,49 @@
       });
     }
 
-    // الكاميرا
+    // الكاميرا + قراءة QR
     function toggleCamera() {
       const video = document.getElementById('cameraPreview');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
       if (videoStream) {
         video.srcObject.getTracks().forEach(track => track.stop());
         videoStream = null;
         video.style.display = "none";
+        scanning = false;
       } else {
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
           .then(stream => {
             video.srcObject = stream;
             videoStream = stream;
             video.style.display = "block";
+            scanning = true;
+            scanLoop();
           })
           .catch(err => {
             alert("لم يتم تشغيل الكاميرا: " + err);
           });
+      }
+
+      function scanLoop() {
+        if (!scanning) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+          if (code) {
+            searchBar.value = code.data; // إدخال الكود في البحث
+            search();
+            scanning = false;
+            toggleCamera(); // يقفل الكاميرا بعد القراءة
+            return;
+          }
+        }
+        requestAnimationFrame(scanLoop);
       }
     }
   </script>
