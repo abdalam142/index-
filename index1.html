@@ -2,76 +2,70 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>نظام البحث عن المنتجات</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بحث في ملف Excel</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      direction: rtl;
-      text-align: center;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    h2 { margin-top: 20px; }
-    #passwordSection, #mainContent { margin: 20px; }
-    input, button {
-      padding: 10px;
-      margin: 5px;
-      font-size: 16px;
-    }
-    table {
-      margin: 20px auto;
-      border-collapse: collapse;
-      width: 80%;
-      background: #fff;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
-      cursor: pointer;
-    }
-    #reader {
-      width: 250px;
-      margin: 10px auto;
-      display: none;
-    }
-    #excelStatus {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: red;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; direction: rtl; display: flex; justify-content: space-between; }
+    #searchContainer, #resultsContainer { width: 45%; }
+    #searchBar { width: 70%; padding: 10px; font-size: 16px; margin-top: 20px; display:none; }
+    #clearBtn { padding: 10px 15px; margin-top: 20px; display:none; }
+    table { width: 100%; margin: 20px auto; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    #status { position: fixed; top: 10px; right: 10px; padding: 6px 12px; border-radius: 5px; color: white; font-weight: bold; }
+    #status.active { background: green; }
+    #status.inactive { background: red; }
+    #cameraBtn { margin-top: 10px; padding: 10px 15px; border: none; border-radius: 5px; background: #007bff; color: white; cursor: pointer; }
+    #cameraPreview { width: 150px; height: 100px; border: 1px solid #ccc; margin-top: 10px; display:none; }
+    #passwordBox { margin-top:20px; }
+    .actions { margin-top: 10px; }
   </style>
 </head>
 <body>
+  <!-- البحث يمين -->
+  <div id="searchContainer">
+    <h2>بحث في ملف Excel</h2>
 
-  <h2>📦 نظام البحث عن المنتجات</h2>
-  <div id="excelStatus" title="حالة ملف الإكسل"></div>
+    <!-- مؤشر حالة الملف -->
+    <div id="status" class="inactive">لا يوجد ملف فعال</div>
 
-  <!-- باسورد -->
-  <div id="passwordSection">
-    <input type="password" id="passwordInput" placeholder="أدخل كلمة المرور">
-    <button onclick="checkPassword()">دخول</button>
+    <!-- إدخال الباسورد -->
+    <div id="passwordBox">
+      <input type="password" id="passwordInput" placeholder="ادخل كلمة المرور">
+      <button onclick="checkPassword()">دخول</button>
+    </div>
+
+    <!-- مربع البحث + زر الحذف -->
+    <div>
+      <input type="text" id="searchBar" placeholder="اكتب الاسم أو الباركود أو الوصف واضغط إنتر">
+      <button id="clearBtn" onclick="clearSearch()">حذف</button>
+    </div>
+
+    <!-- زر الكاميرا والمعاينة -->
+    <div>
+      <button id="cameraBtn" onclick="toggleCamera()">تشغيل/إيقاف الكاميرا</button>
+      <video id="cameraPreview" autoplay></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <!-- الجدول -->
+    <table id="results"></table>
   </div>
 
-  <!-- المحتوى الأساسي -->
-  <div id="mainContent" style="display:none;">
-    <input type="text" id="searchBox" placeholder="ابحث باسم المنتج أو السعر أو الكود أو QR">
-    <button onclick="document.getElementById('searchBox').value='';displayData(products);">عرض الكل</button>
-    <button onclick="toggleCamera()">📷 تشغيل/إيقاف الكاميرا</button>
-    <div id="reader"></div>
-
-    <table id="dataTable">
+  <!-- النتائج المتجمعة شمال -->
+  <div id="resultsContainer">
+    <h2>النتائج</h2>
+    <div class="actions">
+      <button onclick="clearResults()">مسح الكل</button>
+    </div>
+    <table id="finalResults">
       <thead>
         <tr>
           <th>اسم المنتج</th>
           <th>سعر المنتج</th>
-          <th id="filterC">كود الميزان</th>
+          <th>كود الميزان</th>
           <th>QR Code</th>
         </tr>
       </thead>
@@ -80,117 +74,149 @@
   </div>
 
   <script>
-    let products = [];
-    let filteredData = [];
-    let excelLoaded = false;
-    let filterCActive = false;
+    let excelData = [];
+    let videoStream = null;
+    let scanning = false;
 
-    // قراءة ملف Excel من GitHub
+    const statusEl = document.getElementById('status');
+    const searchBar = document.getElementById('searchBar');
+    const clearBtn = document.getElementById('clearBtn');
+    const finalResults = document.getElementById("finalResults").querySelector("tbody");
+
+    // خريطة أسماء الأعمدة
+    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code"];
+
+    // تحميل ملف Excel من GitHub Pages
     fetch("product.template(176).xlsx")
       .then(res => res.arrayBuffer())
       .then(data => {
-        let workbook = XLSX.read(data, {type:"array"});
-        let sheet = workbook.Sheets[workbook.SheetNames[0]];
-        products = XLSX.utils.sheet_to_json(sheet, {header:1});
-        products.shift(); // إزالة الصف الأول (العناوين)
-        excelLoaded = true;
-        document.getElementById("excelStatus").style.background = "green";
-        displayData(products);
+        const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
+        const firstSheet = workbook.SheetNames[0];
+        excelData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+        statusEl.textContent = "ملف فعال";
+        statusEl.className = "active";
+      })
+      .catch(err => {
+        statusEl.textContent = "لا يوجد ملف فعال";
+        statusEl.className = "inactive";
       });
 
-    // عرض البيانات
-    function displayData(data) {
-      let tbody = document.querySelector("#dataTable tbody");
-      tbody.innerHTML = "";
-      data.forEach(row => {
-        let tr = document.createElement("tr");
-        for (let i=0; i<4; i++) {
-          let td = document.createElement("td");
-          td.textContent = row[i] || "";
-          tr.appendChild(td);
-        }
-        tbody.appendChild(tr);
-      });
-      filteredData = data;
-    }
-
-    // باسورد
+    // التحقق من الباسورد
     function checkPassword() {
-      let pass = document.getElementById("passwordInput").value;
+      const pass = document.getElementById('passwordInput').value;
       if (pass === "1234") {
-        document.getElementById("passwordSection").style.display = "none";
-        document.getElementById("mainContent").style.display = "block";
+        document.getElementById('passwordBox').style.display = "none";
+        searchBar.style.display = "inline-block";
+        clearBtn.style.display = "inline-block";
       } else {
-        alert("❌ كلمة المرور غير صحيحة");
+        alert("كلمة المرور غير صحيحة");
       }
     }
 
-    // بحث لايف
-    document.getElementById("searchBox").addEventListener("input", function(){
-      let value = this.value.toLowerCase();
-      let filtered = products.filter(row => 
-        row.some(cell => (cell || "").toString().toLowerCase().includes(value))
-      );
-      displayData(filtered);
-    });
-
-    // فلترة كود الميزان
-    document.getElementById("filterC").addEventListener("click", function() {
-      if (!filterCActive) {
-        let filtered = filteredData.filter(row => row[2] && row[2].toString().trim() !== "");
-        displayData(filtered);
-        filterCActive = true;
-        this.style.background = "#d1ffd1";
-      } else {
-        displayData(products);
-        filterCActive = false;
-        this.style.background = "";
-      }
-    });
-
-    // QR/Barcode Reader
-    let html5QrCode;
-    let cameraRunning = false;
-
-    function onScanSuccess(code) {
-      document.getElementById("searchBox").value = code;
-      let filtered = products.filter(row => 
-        row.some(cell => (cell || "").toString().toLowerCase().includes(code.toLowerCase()))
-      );
-      displayData(filtered);
+    // مسح خانة البحث
+    function clearSearch() {
+      searchBar.value = "";
+      document.getElementById("results").innerHTML = "";
     }
 
-    function onScanError(errorMessage) {
-      // تجاهل
+    // مسح النتائج المتجمعة
+    function clearResults() {
+      finalResults.innerHTML = "";
     }
 
-    function toggleCamera() {
-      if (cameraRunning) {
-        html5QrCode.stop().then(() => {
-          document.getElementById("reader").style.display = "none";
-          cameraRunning = false;
-        });
-      } else {
-        if (!html5QrCode) {
-          html5QrCode = new Html5Qrcode("reader");
+    // البحث
+    searchBar.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') search();
+    });
+
+    function search() {
+      const query = searchBar.value.trim().toLowerCase();
+      if (!query || excelData.length === 0) return;
+
+      const resultsTable = document.getElementById('results');
+      resultsTable.innerHTML = "";
+
+      // إضافة العناوين
+      let headerRow = "<tr>";
+      headers.forEach(h => headerRow += `<th>${h}</th>`);
+      headerRow += "</tr>";
+      resultsTable.innerHTML = headerRow;
+
+      // البحث في البيانات
+      excelData.forEach((row, index) => {
+        if (index === 0) return;
+        let a = (row[0] || "").toString().toLowerCase();
+        let b = (row[1] || "").toString();
+        let c = (row[2] || "").toString().toLowerCase();
+        let d = (row[3] || "").toString().toLowerCase();
+
+        if (a.includes(query) || c.includes(query) || d.includes(query)) {
+          let tr = `<tr>
+            <td>${row[0] || ''}</td>
+            <td>${row[1] || ''}</td>
+            <td>${row[2] || ''}</td>
+            <td>${row[3] || ''}</td>
+          </tr>`;
+          resultsTable.innerHTML += tr;
+
+          // إضافة النتيجة في الجدول الشمال (يتجمع)
+          let resultRow = document.createElement("tr");
+          resultRow.innerHTML = `
+            <td>${row[0] || ''}</td>
+            <td>${row[1] || ''}</td>
+            <td>${row[2] || ''}</td>
+            <td>${row[3] || ''}</td>
+          `;
+          finalResults.appendChild(resultRow);
         }
-        Html5Qrcode.getCameras().then(devices => {
-          if (devices && devices.length) {
-            let cameraId = devices[0].id;
-            html5QrCode.start(
-              cameraId,
-              { fps: 10, qrbox: 200 },
-              onScanSuccess,
-              onScanError
-            ).then(() => {
-              document.getElementById("reader").style.display = "block";
-              cameraRunning = true;
-            });
+      });
+    }
+
+    // الكاميرا + قراءة QR
+    function toggleCamera() {
+      const video = document.getElementById('cameraPreview');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (videoStream) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+        videoStream = null;
+        video.style.display = "none";
+        scanning = false;
+      } else {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+          .then(stream => {
+            video.srcObject = stream;
+            videoStream = stream;
+            video.style.display = "block";
+            scanning = true;
+            scanLoop();
+          })
+          .catch(err => {
+            alert("لم يتم تشغيل الكاميرا: " + err);
+          });
+      }
+
+      function scanLoop() {
+        if (!scanning) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+          if (code) {
+            searchBar.value = code.data;
+            search();
+            scanning = false;
+            toggleCamera();
+            return;
           }
-        });
+        }
+        requestAnimationFrame(scanLoop);
       }
     }
   </script>
-
 </body>
 </html>
