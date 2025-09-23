@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>بحث في المنتجات</title>
+  <title>بحث في ملف Excel — نهائي (مع رسائل خطأ داخلية)</title>
 
   <!-- مكتبات -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -23,6 +23,20 @@
     #passwordInput { width:220px; font-size:20px; padding:8px; text-align:center; }
     .numpad { width:220px; margin:12px auto 0; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
     .numpad button { padding:12px; font-size:18px; border-radius:6px; border:1px solid #ccc; background:#f0f0f0; cursor:pointer; }
+    /* صندوق رسالة الخطأ داخل الصفحة */
+    #passError {
+      display:none;
+      margin-top:10px;
+      color:#842029;
+      background:#f8d7da;
+      border:1px solid #f5c2c7;
+      padding:8px 10px;
+      border-radius:6px;
+      width:260px;
+      margin-left:auto;
+      margin-right:auto;
+      box-sizing:border-box;
+    }
 
     /* التطبيق */
     #app { display:none; margin-top:8px; }
@@ -67,7 +81,7 @@
   </style>
 </head>
 <body>
-  <h2>بحث في المنتجات</h2>
+  <h2>بحث في ملف Excel — نهائي (رسائل الباسورد داخل الصفحة)</h2>
 
   <!-- مؤشر حالة الملف -->
   <div id="status" class="inactive">لا يوجد ملف فعال</div>
@@ -89,6 +103,9 @@
       <button onclick="pressDigit('0')">0</button>
       <button onclick="submitPass()">⏎</button>
     </div>
+
+    <!-- هنا تظهر رسالة الخطأ داخل الصفحة (بدلاً من alert) -->
+    <div id="passError" role="alert" aria-live="polite"></div>
   </div>
 
   <!-- التطبيق -->
@@ -151,12 +168,14 @@
     let qrScanner = null;
     let scanningMode = null; // currently only 'qr' used
     let scaleFilterActive = false;
-    const correctPassword = "10100";
+    const correctPassword = "1234";
 
+    // عناصر DOM المستخدمة في دوال الباسورد
     const statusEl = document.getElementById('status');
     const loginBox = document.getElementById('loginBox');
     const app = document.getElementById('app');
     const passwordInput = document.getElementById('passwordInput');
+    const passErrorBox = document.getElementById('passError');
 
     const searchBar = document.getElementById('searchBar');
     const resultsTbody = document.querySelector('#results tbody');
@@ -189,41 +208,41 @@
         statusEl.className = "inactive";
       });
 
-    /* ===== شاشة الباسورد ===== */
+    /* ===== دوال شاشة الباسورد المحدثة (الخطأ جوه الصفحة) ===== */
     function pressDigit(d) {
-  passwordInput.value = (passwordInput.value || "") + d;
-  clearError();
-}
+      passwordInput.value = (passwordInput.value || "") + d;
+      clearError();
+    }
 
-function backspacePass() {
-  passwordInput.value = (passwordInput.value || "").slice(0, -1);
-  clearError();
-}
+    function backspacePass() {
+      passwordInput.value = (passwordInput.value || "").slice(0, -1);
+      clearError();
+    }
 
-function submitPass() {
-  if ((passwordInput.value || "") === correctPassword) {
-    loginBox.style.display = "none";
-    app.style.display = "block";
-    clearError();
-    setTimeout(() => searchBar.focus(), 150);
-  } else {
-    showError("كلمة المرور غير صحيحة");
-  }
-}
+    function submitPass() {
+      if ((passwordInput.value || "") === correctPassword) {
+        loginBox.style.display = "none";
+        app.style.display = "block";
+        clearError();
+        setTimeout(()=> {
+          if (searchBar) searchBar.focus();
+        }, 150);
+      } else {
+        showError("كلمة المرور غير صحيحة");
+      }
+    }
 
-// دوال مساعدة للرسائل
-function showError(msg) {
-  const errBox = document.getElementById("passError");
-  errBox.textContent = msg;
-  errBox.style.display = "block";
-}
+    function showError(msg) {
+      if (!passErrorBox) return;
+      passErrorBox.textContent = msg;
+      passErrorBox.style.display = "block";
+    }
 
-function clearError() {
-  const errBox = document.getElementById("passError");
-  errBox.textContent = "";
-  errBox.style.display = "none";
-}
-
+    function clearError() {
+      if (!passErrorBox) return;
+      passErrorBox.textContent = "";
+      passErrorBox.style.display = "none";
+    }
 
     /* ===== التعامل مع الكيبورد (Enter و Delete) ===== */
     document.addEventListener('keydown', (e) => {
@@ -233,7 +252,7 @@ function clearError() {
           search(false);
         } else if (e.key === 'Delete') {
           // حذف آخر صف من finalTbody إن وجد
-          if (finalTbody.rows.length > 0) {
+          if (finalTbody && finalTbody.rows.length > 0) {
             finalTbody.deleteRow(finalTbody.rows.length - 1);
             checkClearAllVisibility();
           }
@@ -441,6 +460,7 @@ function clearError() {
        - ملف product.template(176).xlsx يجب أن يكون في نفس المجلد.
        - الآن: إضافة تلقائية تحدث فقط عند تطابق كامل لعمود QR أو كود الميزان (سواء من الكاميرا أو بكتابة قيمة الباركود يدوياً).
        - عند إضافة المنتج فعلاً إلى جدول المنتجات المختارة، مربع البحث يُفرغ تلقائياً.
+       - رسائل الباسورد تظهر داخل الصفحة بدل alert.
     */
   </script>
 </body>
