@@ -317,11 +317,9 @@
 
     /**************************************************************************
      * --------------------  دوال الباسورد (مكانها هنا)  -----------------------
-     * هذا هو القسم الذي طلبت توضيح موقع الدوال فيه.
      * الدوال: pressDigit, backspacePass, submitPass, showError, clearError
      **************************************************************************/
 
-    // اجعل خانة الباسورد تقبل الكتابة من الكيبورد العادي (دعم Enter)
     passwordInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -331,44 +329,37 @@
       }
     });
 
-    // لو دخل المستخدم أي نص مباشرة (ليس عبر numpad) نزيل رسالة الخطأ
     passwordInput.addEventListener('input', function() {
       clearError();
     });
 
-    // تضيف رقم من الكيباد الرقمي
     function pressDigit(d) {
       passwordInput.value = (passwordInput.value || "") + d;
       clearError();
     }
 
-    // تحذف آخر حرف
     function backspacePass() {
       passwordInput.value = (passwordInput.value || "").slice(0, -1);
       clearError();
     }
 
-    // تحقق من كلمة المرور وأظهر التطبيق أو رسالة خطأ داخل الصفحة
     function submitPass() {
       if ((passwordInput.value || "") === correctPassword) {
         loginBox.style.display = "none";
         app.style.display = "block";
         clearError();
-        // ضع التركيز على حقل البحث بعد فتح التطبيق
         setTimeout(() => { if (searchBar) searchBar.focus(); }, 150);
       } else {
         showError("كلمة المرور غير صحيحة");
       }
     }
 
-    // إظهار رسالة خطأ داخل الصفحة (بدون alert)
     function showError(msg) {
       if (!passErrorBox) return;
       passErrorBox.textContent = msg;
       passErrorBox.style.display = "block";
     }
 
-    // مسح رسالة الخطأ
     function clearError() {
       if (!passErrorBox) return;
       passErrorBox.textContent = "";
@@ -381,12 +372,10 @@
     document.addEventListener('keydown', function(e) {
       if (app.style.display === 'block') {
         if (e.key === 'Enter') {
-          // إذا التركيز في حقل كلمة المرور، السماح له (سادسياً) — لكن التطبيق مفتوح فقط بعد الدخول
           if (document.activeElement === passwordInput) return;
           e.preventDefault();
           search(false);
         } else if (e.key === 'Delete') {
-          // حذف آخر صف في finalResults
           if (finalTbody && finalTbody.rows.length > 0) {
             finalTbody.deleteRow(finalTbody.rows.length - 1);
             checkClearAllVisibility();
@@ -397,28 +386,21 @@
 
     /**************************************************************************
      * دوال البحث وإدارة الجداول
-     *
-     * search(fromScanner=false, scannerType='', value=''):
-     *  - fromScanner: true لو البحث جاء من قارئ الكاميرا
-     *  - scannerType: (حاليًا 'qr') (موجود للمستقبل)
-     *  - value: النص الممسوح من الكاميرا
-     *
-     * سلوك:
-     *  - البحث العادي (display) يعرض أي صف فيه تشابه (includes) في جدول البحث (يمين).
-     *  - الإضافة التلقائية إلى جدول المنتجات المختارة (الشمال) تحدث فقط عندما يكون
-     *    هناك تطابق كامل (===) في عمود QR أو عمود كود الميزان.
-     *  - عند إضافة المنتج فعلاً نُفرغ حقل البحث تلقائياً.
      **************************************************************************/
-
     function search(fromScanner = false, scannerType = '', value = '') {
       const query = fromScanner ? (value + "").trim().toLowerCase() : (searchBar.value || "").trim().toLowerCase();
-      if (!query) return;
+      if (!query) {
+        if (fromScanner) {
+          // نضمن التفريغ حتى لو القيمة فارغة
+          searchBar.value = "";
+          searchBar.dispatchEvent(new Event('input'));
+        }
+        return;
+      }
       if (!Array.isArray(excelData) || excelData.length === 0) return;
 
-      // نمسح tbody لنتائج البحث
       resultsTbody.innerHTML = "";
 
-      // ابحث في صفوف الاكسل، تجاهل الصف الأول (رأس)
       excelData.forEach((row, idx) => {
         if (idx === 0) return;
         const a = (row[0] || "").toString().toLowerCase(); // اسم
@@ -426,7 +408,6 @@
         const c = (row[2] || "").toString().toLowerCase(); // كود الميزان
         const d = (row[3] || "").toString().toLowerCase(); // QR
 
-        // إظهار في نتائج البحث بناءً على "تشابه" (مثل السلوك القديم)
         if (a.includes(query) || c.includes(query) || d.includes(query)) {
           const tr = document.createElement('tr');
           const td0 = document.createElement('td'); td0.textContent = row[0] || ""; tr.appendChild(td0);
@@ -441,9 +422,11 @@
             addBtn.textContent = 'إضافة';
             addBtn.addEventListener('click', function() {
               const added = addToFinal(row);
+              // نضمن تفريغ الحقل بعد محاولة الإضافة حتى لو كانت مرفوضة (مكرر)
+              searchBar.value = "";
+              searchBar.dispatchEvent(new Event('input'));
               if (added) {
-                // نُفرغ البحث فقط لو تمت إضافة المنتج فعلاً
-                searchBar.value = "";
+                // (باقي السلوك كما كان)
               }
             });
             tdAction.appendChild(addBtn);
@@ -453,26 +436,24 @@
           tr.appendChild(tdAction);
           resultsTbody.appendChild(tr);
 
-          // إضافة تلقائية: فقط عند "تطابق كامل" في عمود QR أو كود الميزان
           const exactMatch = ((d && d === query) || (c && c === query));
           if (exactMatch) {
-            const added = addToFinal(row);
-            if (added) {
-              searchBar.value = ""; // نُفرغ مربع البحث بعد الإضافة التلقائية
-            }
+            // محاولة إضافة (قد تُعيد false لو مكرر) — بغض النظر عن النتيجة نفرغ الحقل
+            addToFinal(row);
+            searchBar.value = "";
+            searchBar.dispatchEvent(new Event('input'));
           }
         }
       });
 
-      // طبق فلتر كود الميزان لو مفعل
       if (scaleFilterActive) {
         applyScaleFilterToTable(resultsTbody);
       }
 
-      // ======= التعديل البسيط والآمن: لو البحث جاء من الماسح (fromScanner) لازم نُفرغ searchBar دائمًا
-      // هذا يمنع تراكم الأرقام لو تم مسح نفس الكود مرتين (حصلت المشكلة بسبب أن addToFinal تُعيد false لو المنتج موجود)
+      // لو البحث جاء من الماسح (QR) نضمن التفريغ النهائي أيضاً
       if (fromScanner) {
         searchBar.value = "";
+        searchBar.dispatchEvent(new Event('input'));
       }
     }
 
@@ -483,13 +464,11 @@
 
     /**************************************************************************
      * إدارة جدول "المنتجات المختارة" (finalResults)
-     * addToFinal(row) => يعيد true لو تمت الإضافة فعلا (وليس موجود مسبقًا)
      **************************************************************************/
     function addToFinal(row) {
       const qrVal = (row[3] || "").toString();
       const codeVal = (row[2] || "").toString();
 
-      // منع التكرار بناءً على QR أو كود الميزان
       const exists = Array.from(finalTbody.rows).some(r => {
         const rQr = (r.cells[3] && r.cells[3].textContent) || "";
         const rCode = (r.cells[2] && r.cells[2].textContent) || "";
@@ -517,7 +496,6 @@
       finalTbody.appendChild(tr);
       checkClearAllVisibility();
 
-      // إذا كان فلتر كود الميزان مفعل، طبقه فورًا على الصف الجديد
       if (scaleFilterActive) applyScaleFilterToTable(finalTbody);
 
       return true;
@@ -538,7 +516,6 @@
 
     /**************************************************************************
      * فلتر كود الميزان (toggle)
-     * عند التفعيل: يخفي أي صف لا يحتوي قيمة في عمود كود الميزان (العمود الثالث index=2)
      **************************************************************************/
     function toggleScaleFilter() {
       scaleFilterActive = !scaleFilterActive;
@@ -560,9 +537,12 @@
 
     /**************************************************************************
      * قارئ QR باستخدام html5-qrcode
+     * - حماية ضد قراءات فريم متتالية بنفس القيمة (600ms)
+     * - نفريغ الحقل فوراً بعد أي محاولة معالجة
      **************************************************************************/
+    let lastScan = { text: null, time: 0 };
+
     function toggleScanner(mode) {
-      // mode expected 'qr'
       if (scanningMode === mode) {
         stopScanner();
         return;
@@ -581,10 +561,8 @@
         { facingMode: "environment" },
         config,
         (decodedText, decodedResult) => {
-          // ملء مربع البحث وندعو البحث باعتباره fromScanner (وإجراء التطابق الكامل)
-          searchBar.value = decodedText;
-          search(true, 'qr', decodedText);
-          // نوقف المسح بعد القراءة
+          handleDecodedFromScanner(String(decodedText || ""));
+          // نوقف المسح كما كان في سلوكك السابق
           stopScanner();
         }
       ).then(() => {
@@ -594,6 +572,32 @@
         reader.style.display = 'none';
         scanningMode = null;
       });
+    }
+
+    function handleDecodedFromScanner(decodedText) {
+      if (!decodedText) {
+        searchBar.value = "";
+        searchBar.dispatchEvent(new Event('input'));
+        return;
+      }
+      const now = Date.now();
+      if (decodedText === lastScan.text && (now - lastScan.time) < 600) {
+        // تفريغ الحقل عشان لا يتراكم
+        searchBar.value = "";
+        searchBar.dispatchEvent(new Event('input'));
+        lastScan.time = now;
+        return;
+      }
+      lastScan.text = decodedText;
+      lastScan.time = now;
+
+      // ننفذ البحث مع تمرير القيمة الممسوحة
+      search(true, 'qr', decodedText);
+
+      // نضمن التفريغ فوراً بعد المعالجة (التعديل المطلوب)
+      searchBar.value = "";
+      searchBar.dispatchEvent(new Event('input'));
+      try { searchBar.blur(); } catch(e){}
     }
 
     function stopScanner() {
@@ -617,12 +621,9 @@
     /**************************************************************************
      * ربط الأحداث النهائية
      **************************************************************************/
-    // زر البحث (نفس عمل Enter)
     document.getElementById('searchBtn').addEventListener('click', () => search(false));
-    // زر الحذف لمسح البحث
     document.getElementById('clearBtn').addEventListener('click', clearSearch);
 
-    // نمنع السلوك الافتراضي عند الضغط Enter داخل searchBar (نعيد استخدام search handler)
     searchBar.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -632,9 +633,8 @@
 
     /**************************************************************************
      * ملاحظات نهائية:
-     * - احفظ هذا الملف كـ index.html وضع ملف product.template(176).xlsx في نفس المجلد.
-     * - لفتح الكاميرا يتطلب المتصفح صفحة محملة عبر https أو تشغيل سيرفر محلي (file:// قد يمنع الكاميرا).
-     * - إذا احتجت تأكيد قبل "حذف الكل" أخبرني أضيف confirm بسهولة.
+     * - احفظ الملف كـ index.html وضع product.template(176).xlsx في نفس المجلد.
+     * - فتح الكاميرا يتطلب https أو سيرفر محلي.
      **************************************************************************/
   </script>
 </body>
