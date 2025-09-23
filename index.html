@@ -190,15 +190,40 @@
       });
 
     /* ===== شاشة الباسورد ===== */
-    function pressDigit(d) { passwordInput.value = (passwordInput.value || "") + d; }
-    function backspacePass() { passwordInput.value = (passwordInput.value || "").slice(0, -1); }
-    function submitPass() {
-      if ((passwordInput.value || "") === correctPassword) {
-        loginBox.style.display = "none";
-        app.style.display = "block";
-        setTimeout(()=>searchBar.focus(), 150);
-      } else alert("كلمة المرور غير صحيحة");
-    }
+    function pressDigit(d) {
+  passwordInput.value = (passwordInput.value || "") + d;
+  clearError();
+}
+
+function backspacePass() {
+  passwordInput.value = (passwordInput.value || "").slice(0, -1);
+  clearError();
+}
+
+function submitPass() {
+  if ((passwordInput.value || "") === correctPassword) {
+    loginBox.style.display = "none";
+    app.style.display = "block";
+    clearError();
+    setTimeout(() => searchBar.focus(), 150);
+  } else {
+    showError("كلمة المرور غير صحيحة");
+  }
+}
+
+// دوال مساعدة للرسائل
+function showError(msg) {
+  const errBox = document.getElementById("passError");
+  errBox.textContent = msg;
+  errBox.style.display = "block";
+}
+
+function clearError() {
+  const errBox = document.getElementById("passError");
+  errBox.textContent = "";
+  errBox.style.display = "none";
+}
+
 
     /* ===== التعامل مع الكيبورد (Enter و Delete) ===== */
     document.addEventListener('keydown', (e) => {
