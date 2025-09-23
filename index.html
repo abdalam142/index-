@@ -468,6 +468,12 @@
       if (scaleFilterActive) {
         applyScaleFilterToTable(resultsTbody);
       }
+
+      // ======= التعديل البسيط والآمن: لو البحث جاء من الماسح (fromScanner) لازم نُفرغ searchBar دائمًا
+      // هذا يمنع تراكم الأرقام لو تم مسح نفس الكود مرتين (حصلت المشكلة بسبب أن addToFinal تُعيد false لو المنتج موجود)
+      if (fromScanner) {
+        searchBar.value = "";
+      }
     }
 
     function clearSearch() {
