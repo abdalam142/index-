@@ -1,3 +1,5 @@
+أنا GitHub Copilot Chat Assistant — هذا ملف index.html كامل ومعاد بناؤه يطابق الشكل والوظائف (بما في ذلك بقاء شريط البحث فعالاً عند النقر في أي مكان وإدخال الحروف من الكيبورد مباشرة).
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -10,176 +12,49 @@
   <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
 
   <style>
-    :root {
-      --card-bg: #ffffff;
-      --muted: #6c757d;
-      --primary: #0d6efd;
-      --success: #28a745;
-      --danger: #dc3545;
-      --accent: #20c997;
+    :root{
+      --card-bg:#fff; --muted:#6c757d; --primary:#0d6efd; --success:#28a745; --danger:#dc3545; --accent:#20c997;
     }
-    body {
-      font-family: Arial, sans-serif;
-      background: #f6f7fb;
-      color: #222;
-      margin: 0;
-      padding: 18px;
-      box-sizing: border-box;
-      direction: rtl;
+    *{box-sizing:border-box}
+    body{
+      font-family:Arial, sans-serif;
+      background:#f6f7fb;color:#222;margin:0;padding:18px;direction:rtl;
     }
-    h2 { text-align: center; margin: 6px 0 12px; }
-
-    /* مؤشر حالة ملف الإكسل */
-    #status {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      color: #fff;
-      font-weight: 700;
-      z-index: 60;
-    }
-    #status.active { background: var(--success); }
-    #status.inactive { background: var(--danger); }
-
-    /* شاشة الباسورد */
-    #loginBox {
-      background: var(--card-bg);
-      padding: 14px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      max-width: 420px;
-      margin: 10px auto;
-      text-align: center;
-    }
-    #passwordInput {
-      width: 100%;
-      max-width: 260px;
-      padding: 10px;
-      font-size: 20px;
-      text-align: center;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-    .numpad {
-      width: 260px;
-      margin: 12px auto 0;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
-    .numpad button {
-      padding: 12px;
-      font-size: 18px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #f3f3f3;
-      cursor: pointer;
-    }
-    #passError {
-      display: none;
-      margin-top: 10px;
-      color: #842029;
-      background: #f8d7da;
-      border: 1px solid #f5c2c7;
-      padding: 8px 10px;
-      border-radius: 6px;
-      width: 90%;
-      max-width: 320px;
-      margin-inline: auto;
-      box-sizing: border-box;
-    }
-
-    /* التطبيق */
-    #app {
-      display: none;
-      margin-top: 14px;
-    }
-    .searchRow {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-    #searchBar {
-      width: 60%;
-      max-width: 520px;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      box-sizing: border-box;
-      display: inline-block;
-    }
-    .btn {
-      padding: 10px 14px;
-      margin: 0 6px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-    }
-    .btn.primary { background: var(--primary); color: #fff; }
-    .btn.ghost { background: #e9ecef; }
-    .btn.camera { background: var(--accent); color: #fff; }
-    .btn.scale-active { background: #ffc107; color: #111; }
-
-    #reader {
-      width: 320px;
-      margin: 10px auto;
-      display: none;
-    }
-
-    .tables {
-      display: flex;
-      gap: 18px;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-    .col {
-      width: 48%;
-      background: var(--card-bg);
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.04);
-      box-sizing: border-box;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: fixed;
-      word-wrap: break-word;
-    }
-    thead th {
-      background: #f2f2f2;
-      padding: 8px;
-      border: 1px solid #ddd;
-      font-weight: 600;
-    }
-    tbody td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    /* أعمدة بعرض ثابت (نسب) */
-    table th:nth-child(1), table td:nth-child(1) { width: 30%; }
-    table th:nth-child(2), table td:nth-child(2) { width: 18%; }
-    table th:nth-child(3), table td:nth-child(3) { width: 18%; }
-    table th:nth-child(4), table td:nth-child(4) { width: 18%; }
-    table th:nth-child(5), table td:nth-child(5) { width: 16%; }
-
-    .addBtn { background: #198754; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
-    .delBtn {tables reader%; {%;<body>
+    h2{text-align:center;margin:6px 0 12px}
+    #status{position:fixed;top:12px;right:12px;padding:8px 12px;border-radius:6px;color:#fff;font-weight:700;z-index:60}
+    #status.active{background:var(--success)}#status.inactive{background:var(--danger)}
+    #loginBox{background:var(--card-bg);padding:14px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.05);max-width:420px;margin:10px auto;text-align:center}
+    #passwordInput{width:100%;max-width:260px;padding:10px;font-size:20px;text-align:center;border:1px solid #ddd;border-radius:8px}
+    .numpad{width:260px;margin:12px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .numpad button{padding:12px;font-size:18px;border-radius:8px;border:1px solid #ccc;background:#f3f3f3;cursor:pointer}
+    #passError{display:none;margin-top:10px;color:#842029;background:#f8d7da;border:1px solid #f5c2c7;padding:8px 10px;border-radius:6px;width:90%;max-width:320px;margin-inline:auto}
+    #app{display:none;margin-top:14px}
+    .searchRow{text-align:center;margin-bottom:12px}
+    #searchBar{width:60%;max-width:520px;padding:10px;font-size:16px;border-radius:8px;border:1px solid #ddd;display:inline-block}
+    .btn{padding:10px 14px;margin:0 6px;border-radius:8px;border:none;cursor:pointer;font-size:15px}
+    .btn.primary{background:var(--primary);color:#fff}.btn.ghost{background:#e9ecef}.btn.camera{background:var(--accent);color:#fff}.btn.scale-active{background:#ffc107;color:#111}
+    #reader{width:320px;margin:10px auto;display:none}
+    .tables{display:flex;gap:18px;justify-content:space-between;align-items:flex-start;margin-top:16px;flex-wrap:wrap}
+    .col{width:48%;background:var(--card-bg);padding:12px;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.04)}
+    table{width:100%;border-collapse:collapse;table-layout:fixed;word-wrap:break-word}
+    thead th{background:#f2f2f2;padding:8px;border:1px solid #ddd;font-weight:600}
+    tbody td{padding:8px;border:1px solid #ddd;text-align:center;vertical-align:middle}
+    table th:nth-child(1), table td:nth-child(1){width:30%}
+    table th:nth-child(2), table td:nth-child(2){width:18%}
+    table th:nth-child(3), table td:nth-child(3){width:18%}
+    table th:nth-child(4), table td:nth-child(4){width:18%}
+    table th:nth-child(5), table td:nth-child(5){width:16%}
+    .addBtn{background:#198754;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
+    .delBtn{background:var(--danger);color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer}
+    #clearAllBtn{background:var(--danger);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin-bottom:8px;display:none}
+    @media (max-width:900px){.tables{flex-direction:column}.col{width:100%}#reader{width:100%}#searchBar{width:85%}}
+  </style>
+</head>
+<body>
   <h2>بحث في المنتجات</h2>
 
-  <!-- مؤشر حالة ملف الإكسل -->
   <div id="status" class="inactive">لا يوجد ملف فعال</div>
 
-  <!-- شاشة الباسورد -->
   <div id="loginBox" aria-live="polite">
     <input id="passwordInput" type="password" placeholder="ادخل كلمة المرور" aria-label="كلمة المرور">
     <div class="numpad" style="margin-top:12px;">
@@ -196,57 +71,37 @@
       <button onclick="pressDigit('0')">0</button>
       <button onclick="submitPass()">⏎</button>
     </div>
-
-    <!-- رسالة الخطأ داخل الصفحة -->
     <div id="passError" role="alert" aria-live="assertive"></div>
   </div>
 
-  <!-- التطبيق -->
   <div id="app">
     <div class="searchRow" role="region" aria-label="شريط البحث">
-      <input id="searchBar" type="text" placeholder="اكتب الاسم أو الباركود أو وصف المنتج" aria-label="بحث">
-      <button id="searchBtn" class="btn primary" onclick="search(false)">بحث</button>
-      <button id="clearBtn" class="btn ghost" onclick="clearSearch()">حذف</button>
-      <button id="cameraBtn" class="btn camera" onclick="toggleScanner('qr')">📷 QR</button>
-      <button id="scaleBtn" class="btn camera" onclick="toggleScaleFilter()">📶 كود الميزان</button>
+      <input id="searchBar" type="text" placeholder="اكتب الاسم أو الباركود أو وصف المنتج" aria-label="بحث" autocomplete="off">
+      <button id="searchBtn" class="btn primary">بحث</button>
+      <button id="clearBtn" class="btn ghost">حذف</button>
+      <button id="cameraBtn" class="btn camera">📷 QR</button>
+      <button id="scaleBtn" class="btn camera">📶 كود الميزان</button>
     </div>
 
-    <!-- قارئ QR يظهر هنا -->
     <div id="reader" aria-hidden="true"></div>
 
     <div class="tables">
-      <!-- جدول نتائج البحث (يمين) -->
       <div class="col" aria-label="نتائج البحث">
         <h3>نتائج البحث</h3>
         <table id="results" aria-live="polite">
           <thead>
-            <tr>
-              <th>اسم المنتج</th>
-              <th>سعر المنتج</th>
-              <th>كود الميزان</th>
-              <th>QR Code</th>
-              <th>إجراء</th>
-            </tr>
+            <tr><th>اسم المنتج</th><th>سعر المنتج</th><th>كود الميزان</th><th>QR Code</th><th>إجراء</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <!-- جدول المنتجات المختارة (شمال) -->
       <div class="col" aria-label="المنتجات المختارة">
         <h3>المنتجات المختارة</h3>
-        <div style="text-align:left; margin-bottom:6px;">
-          <button id="clearAllBtn" onclick="clearAllSelected()">حذف الكل</button>
-        </div>
+        <div style="text-align:left;margin-bottom:6px;"><button id="clearAllBtn" onclick="clearAllSelected()">حذف الكل</button></div>
         <table id="finalResults" aria-live="polite">
           <thead>
-            <tr>
-              <th>اسم المنتج</th>
-              <th>سعر المنتج</th>
-              <th>كود الميزان</th>
-              <th>QR Code</th>
-              <th>إجراء</th>
-            </tr>
+            <tr><th>اسم المنتج</th><th>سعر المنتج</th><th>كود الميزان</th><th>QR Code</th><th>إجراء</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -255,470 +110,317 @@
   </div>
 
   <script>
-    /**************************************************************************
-     * متغيرات عامة
-     **************************************************************************/
-    let excelData = [];        // بيانات الإكسل كـ array of arrays
-    let qrScanner = null;      // مثيل html5-qrcode
-    let scanningMode = null;   // 'qr' أو null
+    // متغيرات عامة
+    let excelData = [];
+    let qrScanner = null;
+    let scanningMode = null;
     let scaleFilterActive = false;
-    const correctPassword = "10100"; // عدل كلمة المرور لو تحتاج
+    const correctPassword = "10100";
 
-    /* عناصر DOM الرئيسية */
+    // عناصر DOM
     const statusEl = document.getElementById('status');
     const loginBox = document.getElementById('loginBox');
     const passwordInput = document.getElementById('passwordInput');
     const passErrorBox = document.getElementById('passError');
     const app = document.getElementById('app');
-
     const searchBar = document.getElementById('searchBar');
     const resultsTbody = document.querySelector('#results tbody');
     const finalTbody = document.querySelector('#finalResults tbody');
     const reader = document.getElementById('reader');
     const clearAllBtnEl = document.getElementById('clearAllBtn');
     const scaleBtnEl = document.getElementById('scaleBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
 
-    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code"];
-
-    /**************************************************************************
-     * تحميل ملف الإكسل (مثلما طلبت سابقًا)
-     **************************************************************************/
+    // تحميل الإكسل
     fetch("product.template(176).xlsx")
-      .then(res => res.arrayBuffer())
+      .then(r => r.arrayBuffer())
       .then(data => {
-        try {
-          const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
-          const firstSheet = workbook.SheetNames[0];
-          excelData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+        try{
+          const workbook = XLSX.read(new Uint8Array(data), {type:'array'});
+          const first = workbook.SheetNames[0];
+          excelData = XLSX.utils.sheet_to_json(workbook.Sheets[first], {header:1});
           statusEl.textContent = "ملف فعال";
           statusEl.className = "active";
-        } catch (err) {
+        }catch(err){
           console.error("خطأ قراءة الإكسل:", err);
           statusEl.textContent = "ملف غير صالح";
           statusEl.className = "inactive";
         }
       })
-      .catch(err => {
+      .catch(err=>{
         console.warn("لم يتم العثور على ملف الإكسل:", err);
         statusEl.textContent = "لا يوجد ملف فعال";
         statusEl.className = "inactive";
       });
 
-    /**************************************************************************
-     * --------------------  دوال الباسورد (مكانها هنا)  -----------------------
-     * الدوال: pressDigit, backspacePass, submitPass, showError, clearError
-     **************************************************************************/
-
-    passwordInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        submitPass();
-      } else {
-        clearError();
-      }
+    // دوال الباسورد
+    passwordInput.addEventListener('keypress', e => {
+      if(e.key === 'Enter'){ e.preventDefault(); submitPass(); } else { clearError(); }
     });
-
-    passwordInput.addEventListener('input', function() {
-      clearError();
-    });
-
-    function pressDigit(d) {
-      passwordInput.value = (passwordInput.value || "") + d;
-      clearError();
-    }
-
-    function backspacePass() {
-      passwordInput.value = (passwordInput.value || "").slice(0, -1);
-      clearError();
-    }
-
-    function submitPass() {
-      if ((passwordInput.value || "") === correctPassword) {
+    passwordInput.addEventListener('input', clearError);
+    function pressDigit(d){ passwordInput.value = (passwordInput.value||"") + d; clearError(); }
+    function backspacePass(){ passwordInput.value = (passwordInput.value||"").slice(0,-1); clearError(); }
+    function submitPass(){
+      if((passwordInput.value||"") === correctPassword){
         loginBox.style.display = "none";
         app.style.display = "block";
         clearError();
-        setTimeout(() => { if (searchBar) searchBar.focus(); }, 150);
-      } else {
-        showError("كلمة المرور غير صحيحة");
-      }
+        setTimeout(()=>{ searchBar.focus(); }, 120);
+      } else showError("كلمة المرور غير صحيحة");
     }
+    function showError(msg){ passErrorBox.textContent = msg; passErrorBox.style.display = 'block'; }
+    function clearError(){ passErrorBox.textContent = ""; passErrorBox.style.display = 'none'; }
 
-    function showError(msg) {
-      if (!passErrorBox) return;
-      passErrorBox.textContent = msg;
-      passErrorBox.style.display = "block";
-    }
+    // أحداث الأزرار
+    searchBtn.addEventListener('click', ()=>search(false));
+    clearBtn.addEventListener('click', clearSearch);
+    cameraBtn.addEventListener('click', ()=>toggleScanner('qr'));
+    scaleBtnEl.addEventListener('click', toggleScaleFilter);
 
-    function clearError() {
-      if (!passErrorBox) return;
-      passErrorBox.textContent = "";
-      passErrorBox.style.display = "none";
-    }
-
-    /**************************************************************************
-     * دعم الكيبورد العام على الصفحة (Enter للبحث داخل التطبيق، Delete لحذف آخر صف)
-     * تم تحديثه بحيث:
-     * - أي ضغط على الكيبورد أثناء تطبيق مفعل يُحول الحروف مباشرة إلى شريط البحث
-     * - نترك Enter و Delete بالسلوك السابق
-     **************************************************************************/
-
-    // دالة مساعدة لتحديد العناصر التفاعلية التي لا نريد "سرقة" نقراتها
-    function isInteractiveElement(el) {
-      if (!el) return false;
-      const tag = el.tagName ? el.tagName.toLowerCase() : '';
-      if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button' || tag === 'a' || tag === 'label') return true;
-      if (el.isContentEditable) return true;
-      // عناصر تحمل دور زر أو إدخال
+    // مساعدة: هل العنصر تفاعلي؟
+    function isInteractiveElement(el){
+      if(!el) return false;
+      const tag = (el.tagName||'').toLowerCase();
+      if(['input','textarea','select','button','a','label','option'].includes(tag)) return true;
+      if(el.isContentEditable) return true;
       const role = el.getAttribute && el.getAttribute('role');
-      if (role === 'button' || role === 'textbox') return true;
+      if(role && /button|textbox|link|combobox/.test(role)) return true;
       return false;
     }
 
-    // عندما يتم الضغط anywhere بالماوس: نركز شريط البحث إذا لم يكن النقر على عنصر تفاعلي
-    document.addEventListener('mousedown', function(e) {
-      try {
-        if (app.style.display === 'block') {
-          if (!isInteractiveElement(e.target)) {
-            // نؤخر الفوكس قليلاً حتى يكمل المتصفح تعامل النقر
-            setTimeout(() => {
-              if (searchBar) searchBar.focus();
-            }, 0);
-          }
+    // عند النقر في أي مكان: إذا التطبيق مفتوح والنقر ليس على عنصر تفاعلي نركز searchBar
+    document.addEventListener('mousedown', e=>{
+      try{
+        if(app.style.display === 'block' && !isInteractiveElement(e.target)){
+          setTimeout(()=>{ searchBar.focus(); }, 0);
         }
-      } catch (err) { /* ignore */ }
+      }catch(e){}
     });
 
-    // معالجة المفاتيح: نوجه الأحرف إلى searchBar إذا التطبيق مفعل ومستخدم ليس داخل حقل
-    document.addEventListener('keydown', function(e) {
-      try {
-        if (app.style.display !== 'block') return;
-
-        // احترام حالة إدخال الباسورد (لو فتحته مرة أخرى)
-        if (document.activeElement === passwordInput) return;
+    // تحويل ضغطات الكيبورد إلى شريط البحث عندما لا يكون هناك عنصر تفاعلي مُركز
+    document.addEventListener('keydown', e=>{
+      try{
+        if(app.style.display !== 'block') return;
+        if(document.activeElement === passwordInput) return;
 
         const active = document.activeElement;
-        const activeIsInput = active && (active.tagName && ['input','textarea','select'].includes(active.tagName.toLowerCase()) || active.isContentEditable);
+        const activeTag = (active && active.tagName) ? active.tagName.toLowerCase() : '';
+        const activeIsInput = active && (['input','textarea','select'].includes(activeTag) || active.isContentEditable);
 
-        // إذا المستخدم فعلاً يكتب في حقل تفاعلي، نترك السلوك الطبيعي (باستثناء Delete/Enter التي نعالجها أدناه)
-        if (e.key === 'Enter') {
-          // Enter -> تنفيذ البحث (كما قبل)
-          if (!activeIsInput || active === searchBar) {
+        // Enter: تنفيذ البحث إذا ليس داخل حقل آخر أو داخل الـ searchBar
+        if(e.key === 'Enter'){
+          if(!activeIsInput || active === searchBar){
             e.preventDefault();
             search(false);
           }
           return;
         }
 
-        if (e.key === 'Delete') {
-          // Delete -> حذف آخر صف (كما كان)
-          if (!activeIsInput) {
+        // Delete: حذف آخر صف من finalResults إذا المستخدم ليس يكتب داخل حقل
+        if(e.key === 'Delete'){
+          if(!activeIsInput){
             e.preventDefault();
-            if (finalTbody && finalTbody.rows.length > 0) {
-              finalTbody.deleteRow(finalTbody.rows.length - 1);
+            if(finalTbody && finalTbody.rows.length>0){
+              finalTbody.deleteRow(finalTbody.rows.length-1);
               checkClearAllVisibility();
             }
           }
           return;
         }
 
-        // لو المؤشر الآن ليس داخل حقل تفاعلي، نحول الأحرف إلى searchBar
-        if (!activeIsInput) {
-          // تجاهل مفاتيح التحكم والاختصارات (Ctrl/Meta/Alt)
-          if (e.ctrlKey || e.metaKey || e.altKey) return;
+        // تجاهل اختصارات التحكم
+        if(e.ctrlKey || e.metaKey || e.altKey) return;
 
-          // Printable characters: طول المفتاح يساوي 1 (مثل 'a' أو '1') أو ' ' (Space)
-          if (e.key.length === 1 || e.key === ' ') {
+        if(!activeIsInput){
+          // الحروف القابلة للطباعة أو مسافة
+          if(e.key.length === 1 || e.key === ' '){
             e.preventDefault();
-            // وضع القيمة في المكان الحالي داخل searchBar مع الحفاظ على التحديد
             const start = (searchBar.selectionStart != null) ? searchBar.selectionStart : searchBar.value.length;
             const end = (searchBar.selectionEnd != null) ? searchBar.selectionEnd : start;
-            const char = e.key;
-            searchBar.value = searchBar.value.slice(0, start) + char + searchBar.value.slice(end);
-            // ضبط المؤشر بعد الحرف المدخل
-            const pos = start + char.length;
+            const ch = e.key;
+            searchBar.value = searchBar.value.slice(0,start) + ch + searchBar.value.slice(end);
+            const pos = start + ch.length;
             searchBar.focus();
-            try { searchBar.setSelectionRange(pos, pos); } catch(ex){}
-            // إشعار أي مستمعين لتحديث النتائج المباشرة إن وُجد
+            try{ searchBar.setSelectionRange(pos,pos); }catch(err){}
             searchBar.dispatchEvent(new Event('input'));
             return;
           }
-
-          // Backspace: حذف حرف واحد من searchBar
-          if (e.key === 'Backspace') {
+          if(e.key === 'Backspace'){
             e.preventDefault();
             const start = (searchBar.selectionStart != null) ? searchBar.selectionStart : searchBar.value.length;
             const end = (searchBar.selectionEnd != null) ? searchBar.selectionEnd : start;
-            if (start === end && start > 0) {
-              searchBar.value = searchBar.value.slice(0, start - 1) + searchBar.value.slice(end);
+            if(start === end && start > 0){
+              searchBar.value = searchBar.value.slice(0,start-1) + searchBar.value.slice(end);
               const pos = start - 1;
               searchBar.focus();
-              try { searchBar.setSelectionRange(pos, pos); } catch(ex){}
+              try{ searchBar.setSelectionRange(pos,pos); }catch(err){}
             } else {
-              searchBar.value = searchBar.value.slice(0, start) + searchBar.value.slice(end);
+              searchBar.value = searchBar.value.slice(0,start) + searchBar.value.slice(end);
               searchBar.focus();
-              try { searchBar.setSelectionRange(start, start); } catch(ex){}
+              try{ searchBar.setSelectionRange(start,start); }catch(err){}
             }
             searchBar.dispatchEvent(new Event('input'));
             return;
           }
         }
-      } catch (err) {
-        console.warn("keydown handler error:", err);
+      }catch(err){
+        console.warn('keydown handler error', err);
       }
     });
 
-    /**************************************************************************
-     * دوال البحث وإدارة الجداول
-     **************************************************************************/
-    function search(fromScanner = false, scannerType = '', value = '') {
-      const query = fromScanner ? (value + "").trim().toLowerCase() : (searchBar.value || "").trim().toLowerCase();
-      if (!query) {
-        if (fromScanner) {
-          // نضمن التفريغ حتى لو القيمة فارغة
-          searchBar.value = "";
-          searchBar.dispatchEvent(new Event('input'));
-        }
+    // البحث وإدارة الجداول
+    function search(fromScanner=false, scannerType='', value=''){
+      const q = fromScanner ? (value+"").trim().toLowerCase() : (searchBar.value||"").trim().toLowerCase();
+      if(!q){
+        if(fromScanner){ searchBar.value = ""; searchBar.dispatchEvent(new Event('input')); }
         return;
       }
-      if (!Array.isArray(excelData) || excelData.length === 0) return;
-
+      if(!Array.isArray(excelData) || excelData.length === 0) return;
       resultsTbody.innerHTML = "";
-
-      excelData.forEach((row, idx) => {
-        if (idx === 0) return;
-        const a = (row[0] || "").toString().toLowerCase(); // اسم
-        const b = (row[1] || "").toString();               // سعر
-        const c = (row[2] || "").toString().toLowerCase(); // كود الميزان
-        const d = (row[3] || "").toString().toLowerCase(); // QR
-
-        if (a.includes(query) || c.includes(query) || d.includes(query)) {
+      for(let i=1;i<excelData.length;i++){
+        const row = excelData[i] || [];
+        const name = (row[0]||"").toString().toLowerCase();
+        const price = (row[1]||"").toString();
+        const scale = (row[2]||"").toString().toLowerCase();
+        const qr = (row[3]||"").toString().toLowerCase();
+        if(name.includes(q) || scale.includes(q) || qr.includes(q)){
           const tr = document.createElement('tr');
-          const td0 = document.createElement('td'); td0.textContent = row[0] || ""; tr.appendChild(td0);
-          const td1 = document.createElement('td'); td1.textContent = row[1] || ""; tr.appendChild(td1);
-          const td2 = document.createElement('td'); td2.textContent = row[2] || ""; tr.appendChild(td2);
-          const td3 = document.createElement('td'); td3.textContent = row[3] || ""; tr.appendChild(td3);
-
-          const tdAction = document.createElement('td');
-          if (!fromScanner) {
-            const addBtn = document.createElement('button');
-            addBtn.className = 'addBtn';
-            addBtn.textContent = 'إضافة';
-            addBtn.addEventListener('click', function() {
-              const added = addToFinal(row);
-              // نضمن تفريغ الحقل بعد محاولة الإضافة حتى لو كانت مرفوضة (مكرر)
-              searchBar.value = "";
-              searchBar.dispatchEvent(new Event('input'));
-              if (added) {
-                // (باقي السلوك كما كان)
-              }
+          const td0=document.createElement('td'); td0.textContent = row[0]||""; tr.appendChild(td0);
+          const td1=document.createElement('td'); td1.textContent = row[1]||""; tr.appendChild(td1);
+          const td2=document.createElement('td'); td2.textContent = row[2]||""; tr.appendChild(td2);
+          const td3=document.createElement('td'); td3.textContent = row[3]||""; tr.appendChild(td3);
+          const tdAction=document.createElement('td');
+          if(!fromScanner){
+            const addBtn=document.createElement('button');
+            addBtn.className='addBtn';
+            addBtn.textContent='إضافة';
+            addBtn.addEventListener('click', ()=> {
+              addToFinal(row);
+              searchBar.value=""; searchBar.dispatchEvent(new Event('input'));
             });
             tdAction.appendChild(addBtn);
-          } else {
-            tdAction.textContent = '';
           }
           tr.appendChild(tdAction);
           resultsTbody.appendChild(tr);
 
-          const exactMatch = ((d && d === query) || (c && c === query));
-          if (exactMatch) {
-            // محاولة إضافة (قد تُعيد false لو مكرر) — بغض النظر عن النتيجة نفرغ الحقل
+          const exactMatch = ((qr && qr === q) || (scale && scale === q));
+          if(exactMatch){
             addToFinal(row);
-            searchBar.value = "";
-            searchBar.dispatchEvent(new Event('input'));
+            searchBar.value=""; searchBar.dispatchEvent(new Event('input'));
           }
         }
-      });
-
-      if (scaleFilterActive) {
-        applyScaleFilterToTable(resultsTbody);
       }
-
-      // لو البحث جاء من الماسح (QR) نضمن التفريغ النهائي أيضاً
-      if (fromScanner) {
-        searchBar.value = "";
-        searchBar.dispatchEvent(new Event('input'));
-      }
+      if(scaleFilterActive) applyScaleFilterToTable(resultsTbody);
+      if(fromScanner){ searchBar.value=""; searchBar.dispatchEvent(new Event('input')); }
     }
 
-    function clearSearch() {
-      searchBar.value = "";
-      resultsTbody.innerHTML = "";
-    }
+    function clearSearch(){ searchBar.value=""; resultsTbody.innerHTML=""; }
 
-    /**************************************************************************
-     * إدارة جدول "المنتجات المختارة" (finalResults)
-     **************************************************************************/
-    function addToFinal(row) {
-      const qrVal = (row[3] || "").toString();
-      const codeVal = (row[2] || "").toString();
-
-      const exists = Array.from(finalTbody.rows).some(r => {
+    function addToFinal(row){
+      const qrVal = (row[3]||"").toString();
+      const codeVal = (row[2]||"").toString();
+      const exists = Array.from(finalTbody.rows).some(r=>{
         const rQr = (r.cells[3] && r.cells[3].textContent) || "";
         const rCode = (r.cells[2] && r.cells[2].textContent) || "";
         return (rQr === qrVal && qrVal !== "") || (rCode === codeVal && codeVal !== "");
       });
-      if (exists) return false;
-
-      const tr = document.createElement('tr');
-      const td0 = document.createElement('td'); td0.textContent = row[0] || ""; tr.appendChild(td0);
-      const td1 = document.createElement('td'); td1.textContent = row[1] || ""; tr.appendChild(td1);
-      const td2 = document.createElement('td'); td2.textContent = row[2] || ""; tr.appendChild(td2);
-      const td3 = document.createElement('td'); td3.textContent = row[3] || ""; tr.appendChild(td3);
-
-      const tdDel = document.createElement('td');
-      const delBtn = document.createElement('button');
-      delBtn.className = 'delBtn';
-      delBtn.textContent = 'حذف';
-      delBtn.addEventListener('click', function() {
-        this.closest('tr').remove();
-        checkClearAllVisibility();
-      });
-      tdDel.appendChild(delBtn);
-      tr.appendChild(tdDel);
-
+      if(exists) return false;
+      const tr=document.createElement('tr');
+      const td0=document.createElement('td'); td0.textContent=row[0]||""; tr.appendChild(td0);
+      const td1=document.createElement('td'); td1.textContent=row[1]||""; tr.appendChild(td1);
+      const td2=document.createElement('td'); td2.textContent=row[2]||""; tr.appendChild(td2);
+      const td3=document.createElement('td'); td3.textContent=row[3]||""; tr.appendChild(td3);
+      const tdDel=document.createElement('td');
+      const delBtn=document.createElement('button'); delBtn.className='delBtn'; delBtn.textContent='حذف';
+      delBtn.addEventListener('click', function(){ this.closest('tr').remove(); checkClearAllVisibility(); });
+      tdDel.appendChild(delBtn); tr.appendChild(tdDel);
       finalTbody.appendChild(tr);
       checkClearAllVisibility();
-
-      if (scaleFilterActive) applyScaleFilterToTable(finalTbody);
-
+      if(scaleFilterActive) applyScaleFilterToTable(finalTbody);
       return true;
     }
 
-    function clearAllSelected() {
-      finalTbody.innerHTML = "";
-      checkClearAllVisibility();
-    }
+    function clearAllSelected(){ finalTbody.innerHTML=""; checkClearAllVisibility(); }
+    function checkClearAllVisibility(){ clearAllBtnEl.style.display = (!finalTbody || finalTbody.rows.length===0) ? 'none' : 'inline-block'; }
 
-    function checkClearAllVisibility() {
-      if (!finalTbody || finalTbody.rows.length === 0) {
-        clearAllBtnEl.style.display = 'none';
-      } else {
-        clearAllBtnEl.style.display = 'inline-block';
-      }
-    }
-
-    /**************************************************************************
-     * فلتر كود الميزان (toggle)
-     **************************************************************************/
-    function toggleScaleFilter() {
+    // فلتر كود الميزان
+    function toggleScaleFilter(){
       scaleFilterActive = !scaleFilterActive;
       scaleBtnEl.classList.toggle('scale-active', scaleFilterActive);
       applyScaleFilterToTable(resultsTbody);
       applyScaleFilterToTable(finalTbody);
       checkClearAllVisibility();
     }
-
-    function applyScaleFilterToTable(tbody) {
-      if (!tbody) return;
-      const rows = Array.from(tbody.rows);
-      rows.forEach(row => {
-        const cell = row.cells[2]; // كود الميزان (index 2)
-        const val = cell ? (cell.textContent || "").trim() : "";
+    function applyScaleFilterToTable(tbody){
+      if(!tbody) return;
+      Array.from(tbody.rows).forEach(row=>{
+        const cell = row.cells[2];
+        const val = cell ? (cell.textContent||"").trim() : "";
         row.style.display = (scaleFilterActive && val === "") ? 'none' : '';
       });
     }
 
-    /**************************************************************************
-     * قارئ QR باستخدام html5-qrcode
-     * - حماية ضد قراءات فريم متتالية بنفس القيمة (600ms)
-     * - نفريغ الحقل فوراً بعد أي محاولة معالجة
-     **************************************************************************/
-    let lastScan = { text: null, time: 0 };
-
-    function toggleScanner(mode) {
-      if (scanningMode === mode) {
-        stopScanner();
-        return;
-      }
-      if (scanningMode) stopScanner();
+    // قارئ QR
+    let lastScan = {text:null, time:0};
+    function toggleScanner(mode){
+      if(scanningMode === mode){ stopScanner(); return; }
+      if(scanningMode) stopScanner();
       startScanner();
     }
-
-    function startScanner() {
+    function startScanner(){
       scanningMode = 'qr';
       reader.style.display = 'block';
       const scanner = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: 250 };
-
-      scanner.start(
-        { facingMode: "environment" },
-        config,
+      const config = {fps:10, qrbox:250};
+      scanner.start({facingMode:"environment"}, config,
         (decodedText, decodedResult) => {
-          handleDecodedFromScanner(String(decodedText || ""));
-          // نوقف المسح كما كان في سلوكك السابق
+          handleDecodedFromScanner(String(decodedText||""));
+          // أوقف بعد قراءة كما بالسلوك الأصلي
           stopScanner();
         }
-      ).then(() => {
-        qrScanner = scanner;
-      }).catch(err => {
+      ).then(()=>{ qrScanner = scanner; })
+      .catch(err=>{
         alert("فشل تشغيل الكاميرا: " + err);
         reader.style.display = 'none';
         scanningMode = null;
       });
     }
-
-    function handleDecodedFromScanner(decodedText) {
-      if (!decodedText) {
-        searchBar.value = "";
-        searchBar.dispatchEvent(new Event('input'));
-        return;
-      }
+    function handleDecodedFromScanner(decodedText){
+      if(!decodedText){ searchBar.value=""; searchBar.dispatchEvent(new Event('input')); return; }
       const now = Date.now();
-      if (decodedText === lastScan.text && (now - lastScan.time) < 600) {
-        // تفريغ الحقل عشان لا يتراكم
-        searchBar.value = "";
-        searchBar.dispatchEvent(new Event('input'));
+      if(decodedText === lastScan.text && (now - lastScan.time) < 600){
+        searchBar.value=""; searchBar.dispatchEvent(new Event('input'));
         lastScan.time = now;
         return;
       }
-      lastScan.text = decodedText;
-      lastScan.time = now;
-
-      // ننفذ البحث مع تمرير القيمة الممسوحة
+      lastScan.text = decodedText; lastScan.time = now;
       search(true, 'qr', decodedText);
-
-      // نضمن التفريغ فوراً بعد المعالجة (التعديل المطلوب)
-      searchBar.value = "";
-      searchBar.dispatchEvent(new Event('input'));
-      try { searchBar.blur(); } catch(e){}
+      searchBar.value = ""; searchBar.dispatchEvent(new Event('input'));
+      try{ searchBar.blur(); }catch(e){}
     }
-
-    function stopScanner() {
-      if (qrScanner) {
-        qrScanner.stop().then(() => {
-          qrScanner.clear();
-          qrScanner = null;
-          reader.style.display = 'none';
-          scanningMode = null;
-        }).catch(err => {
+    function stopScanner(){
+      if(qrScanner){
+        qrScanner.stop().then(()=>{
+          qrScanner.clear(); qrScanner = null; reader.style.display = 'none'; scanningMode = null;
+        }).catch(err=>{
           console.warn("خطأ عند إيقاف الماسح:", err);
-          reader.style.display = 'none';
-          scanningMode = null;
+          reader.style.display = 'none'; scanningMode = null;
         });
-      } else {
-        reader.style.display = 'none';
-        scanningMode = null;
-      }
+      } else { reader.style.display = 'none'; scanningMode = null; }
     }
 
-    /**************************************************************************
-     * ربط الأحداث النهائية
-     **************************************************************************/
-    document.getElementById('searchBtn').addEventListener('click', () => search(false));
-    document.getElementById('clearBtn').addEventListener('click', clearSearch);
-
-    searchBar.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        search(false);
-      }
+    // التهيئة: وضع حدث لإدخال مباشر (مثلاً لو تريد بحث مباشر أثناء الكتابة)
+    searchBar.addEventListener('keypress', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); search(false); }
     });
 
-    /**************************************************************************
-     * ملاحظات نهائية:
-     * - احفظ الملف كـ index.html وضع product.template(176).xlsx في نفس المجلد.
-     * - فتح الكاميرا يتطلب https أو سيرفر محلي.
-     **************************************************************************/
+    // اختياري: تحديث نتائج أثناء الكتابة (إذا تريد)
+    // searchBar.addEventListener('input', ()=>{ /* يمكنك تفعيل البحث التلقائي هنا إن رغبت */ });
+
+    // عند تحميل الصفحة نركز الحقل الباسورد
+    try{ passwordInput.focus(); }catch(e){}
   </script>
 </body>
 </html>
