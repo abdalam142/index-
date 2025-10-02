@@ -1,14 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>بحث في المنتجات</title>
-
-  <!-- مكتبات -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8"></script>
-
   <style>
     :root {
       --card-bg: #ffffff;
@@ -28,8 +26,6 @@
       direction: rtl;
     }
     h2 { text-align: center; margin: 6px 0 12px; }
-
-    /* مؤشر حالة ملف الإكسل */
     #status {
       position: fixed;
       top: 12px;
@@ -42,8 +38,6 @@
     }
     #status.active { background: var(--success); }
     #status.inactive { background: var(--danger); }
-
-    /* شاشة الباسورد */
     #loginBox {
       background: var(--card-bg);
       padding: 14px;
@@ -90,8 +84,6 @@
       margin-inline: auto;
       box-sizing: border-box;
     }
-
-    /* التطبيق */
     #app {
       display: none;
       margin-top: 14px;
@@ -99,6 +91,17 @@
     .searchRow {
       text-align: center;
       margin-bottom: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .searchControls {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-direction: row-reverse;
     }
     #searchBar {
       width: 60%;
@@ -122,13 +125,13 @@
     .btn.ghost { background: #e9ecef; }
     .btn.camera { background: var(--accent); color: #fff; }
     .btn.scale-active { background: #ffc107; color: #111; }
-
+    .btn.focus-on { background: #198754; color: #fff; }
+    .btn.focus-off { background: #6c757d; color: #fff; }
     #reader {
       width: 320px;
       margin: 10px auto;
       display: none;
     }
-
     .tables {
       display: flex;
       gap: 18px;
@@ -145,7 +148,6 @@
       box-shadow: 0 1px 6px rgba(0,0,0,0.04);
       box-sizing: border-box;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -164,18 +166,14 @@
       text-align: center;
       vertical-align: middle;
     }
-
-    /* أعمدة بعرض ثابت (نسب) */
     table th:nth-child(1), table td:nth-child(1) { width: 30%; }
     table th:nth-child(2), table td:nth-child(2) { width: 18%; }
     table th:nth-child(3), table td:nth-child(3) { width: 18%; }
     table th:nth-child(4), table td:nth-child(4) { width: 18%; }
     table th:nth-child(5), table td:nth-child(5) { width: 16%; }
-
     .addBtn { background: #198754; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
     .delBtn { background: var(--danger); color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; }
     #clearAllBtn { background: var(--danger); color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; margin-bottom:8px; display:none; }
-
     @media (max-width: 900px) {
       .tables { flex-direction: column; }
       .col { width: 100%; }
@@ -186,11 +184,7 @@
 </head>
 <body>
   <h2>بحث في المنتجات</h2>
-
-  <!-- مؤشر حالة ملف الإكسل -->
   <div id="status" class="inactive">لا يوجد ملف فعال</div>
-
-  <!-- شاشة الباسورد -->
   <div id="loginBox" aria-live="polite">
     <input id="passwordInput" type="password" placeholder="ادخل كلمة المرور" aria-label="كلمة المرور">
     <div class="numpad" style="margin-top:12px;">
@@ -207,26 +201,21 @@
       <button onclick="pressDigit('0')">0</button>
       <button onclick="submitPass()">⏎</button>
     </div>
-
-    <!-- رسالة الخطأ داخل الصفحة -->
     <div id="passError" role="alert" aria-live="assertive"></div>
   </div>
-
-  <!-- التطبيق -->
   <div id="app">
     <div class="searchRow" role="region" aria-label="شريط البحث">
-      <input id="searchBar" type="text" placeholder="اكتب الاسم أو الباركود أو وصف المنتج" aria-label="بحث">
+      <div class="searchControls">
+        <input id="searchBar" type="text" placeholder="اكتب الاسم أو الباركود أو وصف المنتج" aria-label="بحث">
+        <button id="focusToggleBtn" class="btn focus-on">إيقاف التركيز</button>
+      </div>
       <button id="searchBtn" class="btn primary" onclick="search(false)">بحث</button>
       <button id="clearBtn" class="btn ghost" onclick="clearSearch()">حذف</button>
       <button id="cameraBtn" class="btn camera" onclick="toggleScanner('qr')">📷 QR</button>
       <button id="scaleBtn" class="btn camera" onclick="toggleScaleFilter()">📶 كود الميزان</button>
     </div>
-
-    <!-- قارئ QR يظهر هنا -->
     <div id="reader" aria-hidden="true"></div>
-
     <div class="tables">
-      <!-- جدول نتائج البحث (يمين) -->
       <div class="col" aria-label="نتائج البحث">
         <h3>نتائج البحث</h3>
         <table id="results" aria-live="polite">
@@ -242,8 +231,6 @@
           <tbody></tbody>
         </table>
       </div>
-
-      <!-- جدول المنتجات المختارة (شمال) -->
       <div class="col" aria-label="المنتجات المختارة">
         <h3>المنتجات المختارة</h3>
         <div style="text-align:left; margin-bottom:6px;">
@@ -266,16 +253,12 @@
   </div>
 
   <script>
-    /**************************************************************************
-     * متغيرات عامة
-     **************************************************************************/
-    let excelData = [];        // بيانات الإكسل كـ array of arrays
-    let qrScanner = null;      // مثيل html5-qrcode
-    let scanningMode = null;   // 'qr' أو null
+    let excelData = [];
+    let qrScanner = null;
+    let scanningMode = null;
     let scaleFilterActive = false;
-    const correctPassword = "10100"; // عدل كلمة المرور لو تحتاج
+    const correctPassword = "10100";
 
-    /* عناصر DOM الرئيسية */
     const statusEl = document.getElementById('status');
     const loginBox = document.getElementById('loginBox');
     const passwordInput = document.getElementById('passwordInput');
@@ -288,37 +271,21 @@
     const reader = document.getElementById('reader');
     const clearAllBtnEl = document.getElementById('clearAllBtn');
     const scaleBtnEl = document.getElementById('scaleBtn');
+    const focusToggleBtn = document.getElementById('focusToggleBtn');
 
-    const headers = ["اسم المنتج", "سعر المنتج", "كود الميزان", "QR Code"];
-
-    /**************************************************************************
-     * تحميل ملف الإكسل (مثلما طلبت سابقًا)
-     **************************************************************************/
     fetch("product.template(176).xlsx")
       .then(res => res.arrayBuffer())
       .then(data => {
-        try {
           const workbook = XLSX.read(new Uint8Array(data), { type: 'array' });
           const firstSheet = workbook.SheetNames[0];
           excelData = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
           statusEl.textContent = "ملف فعال";
           statusEl.className = "active";
-        } catch (err) {
-          console.error("خطأ قراءة الإكسل:", err);
-          statusEl.textContent = "ملف غير صالح";
-          statusEl.className = "inactive";
-        }
       })
       .catch(err => {
-        console.warn("لم يتم العثور على ملف الإكسل:", err);
         statusEl.textContent = "لا يوجد ملف فعال";
         statusEl.className = "inactive";
       });
-
-    /**************************************************************************
-     * --------------------  دوال الباسورد (مكانها هنا)  -----------------------
-     * الدوال: pressDigit, backspacePass, submitPass, showError, clearError
-     **************************************************************************/
 
     passwordInput.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
@@ -366,9 +333,6 @@
       passErrorBox.style.display = "none";
     }
 
-    /**************************************************************************
-     * دعم الكيبورد العام على الصفحة (Enter للبحث داخل التطبيق، Delete لحذف آخر صف)
-     **************************************************************************/
     document.addEventListener('keydown', function(e) {
       if (app.style.display === 'block') {
         if (e.key === 'Enter') {
@@ -384,14 +348,10 @@
       }
     });
 
-    /**************************************************************************
-     * دوال البحث وإدارة الجداول
-     **************************************************************************/
     function search(fromScanner = false, scannerType = '', value = '') {
       const query = fromScanner ? (value + "").trim().toLowerCase() : (searchBar.value || "").trim().toLowerCase();
       if (!query) {
         if (fromScanner) {
-          // نضمن التفريغ حتى لو القيمة فارغة
           searchBar.value = "";
           searchBar.dispatchEvent(new Event('input'));
         }
@@ -403,10 +363,10 @@
 
       excelData.forEach((row, idx) => {
         if (idx === 0) return;
-        const a = (row[0] || "").toString().toLowerCase(); // اسم
-        const b = (row[1] || "").toString();               // سعر
-        const c = (row[2] || "").toString().toLowerCase(); // كود الميزان
-        const d = (row[3] || "").toString().toLowerCase(); // QR
+        const a = (row[0] || "").toString().toLowerCase();
+        const b = (row[1] || "").toString();
+        const c = (row[2] || "").toString().toLowerCase();
+        const d = (row[3] || "").toString().toLowerCase();
 
         if (a.includes(query) || c.includes(query) || d.includes(query)) {
           const tr = document.createElement('tr');
@@ -414,7 +374,6 @@
           const td1 = document.createElement('td'); td1.textContent = row[1] || ""; tr.appendChild(td1);
           const td2 = document.createElement('td'); td2.textContent = row[2] || ""; tr.appendChild(td2);
           const td3 = document.createElement('td'); td3.textContent = row[3] || ""; tr.appendChild(td3);
-
           const tdAction = document.createElement('td');
           if (!fromScanner) {
             const addBtn = document.createElement('button');
@@ -422,12 +381,8 @@
             addBtn.textContent = 'إضافة';
             addBtn.addEventListener('click', function() {
               const added = addToFinal(row);
-              // نضمن تفريغ الحقل بعد محاولة الإضافة حتى لو كانت مرفوضة (مكرر)
               searchBar.value = "";
               searchBar.dispatchEvent(new Event('input'));
-              if (added) {
-                // (باقي السلوك كما كان)
-              }
             });
             tdAction.appendChild(addBtn);
           } else {
@@ -438,7 +393,6 @@
 
           const exactMatch = ((d && d === query) || (c && c === query));
           if (exactMatch) {
-            // محاولة إضافة (قد تُعيد false لو مكرر) — بغض النظر عن النتيجة نفرغ الحقل
             addToFinal(row);
             searchBar.value = "";
             searchBar.dispatchEvent(new Event('input'));
@@ -450,7 +404,6 @@
         applyScaleFilterToTable(resultsTbody);
       }
 
-      // لو البحث جاء من الماسح (QR) نضمن التفريغ النهائي أيضاً
       if (fromScanner) {
         searchBar.value = "";
         searchBar.dispatchEvent(new Event('input'));
@@ -462,9 +415,6 @@
       resultsTbody.innerHTML = "";
     }
 
-    /**************************************************************************
-     * إدارة جدول "المنتجات المختارة" (finalResults)
-     **************************************************************************/
     function addToFinal(row) {
       const qrVal = (row[3] || "").toString();
       const codeVal = (row[2] || "").toString();
@@ -481,7 +431,6 @@
       const td1 = document.createElement('td'); td1.textContent = row[1] || ""; tr.appendChild(td1);
       const td2 = document.createElement('td'); td2.textContent = row[2] || ""; tr.appendChild(td2);
       const td3 = document.createElement('td'); td3.textContent = row[3] || ""; tr.appendChild(td3);
-
       const tdDel = document.createElement('td');
       const delBtn = document.createElement('button');
       delBtn.className = 'delBtn';
@@ -492,12 +441,9 @@
       });
       tdDel.appendChild(delBtn);
       tr.appendChild(tdDel);
-
       finalTbody.appendChild(tr);
       checkClearAllVisibility();
-
       if (scaleFilterActive) applyScaleFilterToTable(finalTbody);
-
       return true;
     }
 
@@ -514,9 +460,6 @@
       }
     }
 
-    /**************************************************************************
-     * فلتر كود الميزان (toggle)
-     **************************************************************************/
     function toggleScaleFilter() {
       scaleFilterActive = !scaleFilterActive;
       scaleBtnEl.classList.toggle('scale-active', scaleFilterActive);
@@ -529,17 +472,12 @@
       if (!tbody) return;
       const rows = Array.from(tbody.rows);
       rows.forEach(row => {
-        const cell = row.cells[2]; // كود الميزان (index 2)
+        const cell = row.cells[2];
         const val = cell ? (cell.textContent || "").trim() : "";
         row.style.display = (scaleFilterActive && val === "") ? 'none' : '';
       });
     }
 
-    /**************************************************************************
-     * قارئ QR باستخدام html5-qrcode
-     * - حماية ضد قراءات فريم متتالية بنفس القيمة (600ms)
-     * - نفريغ الحقل فوراً بعد أي محاولة معالجة
-     **************************************************************************/
     let lastScan = { text: null, time: 0 };
 
     function toggleScanner(mode) {
@@ -556,13 +494,11 @@
       reader.style.display = 'block';
       const scanner = new Html5Qrcode("reader");
       const config = { fps: 10, qrbox: 250 };
-
       scanner.start(
         { facingMode: "environment" },
         config,
         (decodedText, decodedResult) => {
           handleDecodedFromScanner(String(decodedText || ""));
-          // نوقف المسح كما كان في سلوكك السابق
           stopScanner();
         }
       ).then(() => {
@@ -582,7 +518,6 @@
       }
       const now = Date.now();
       if (decodedText === lastScan.text && (now - lastScan.time) < 600) {
-        // تفريغ الحقل عشان لا يتراكم
         searchBar.value = "";
         searchBar.dispatchEvent(new Event('input'));
         lastScan.time = now;
@@ -590,11 +525,7 @@
       }
       lastScan.text = decodedText;
       lastScan.time = now;
-
-      // ننفذ البحث مع تمرير القيمة الممسوحة
       search(true, 'qr', decodedText);
-
-      // نضمن التفريغ فوراً بعد المعالجة (التعديل المطلوب)
       searchBar.value = "";
       searchBar.dispatchEvent(new Event('input'));
       try { searchBar.blur(); } catch(e){}
@@ -608,7 +539,6 @@
           reader.style.display = 'none';
           scanningMode = null;
         }).catch(err => {
-          console.warn("خطأ عند إيقاف الماسح:", err);
           reader.style.display = 'none';
           scanningMode = null;
         });
@@ -618,9 +548,6 @@
       }
     }
 
-    /**************************************************************************
-     * ربط الأحداث النهائية
-     **************************************************************************/
     document.getElementById('searchBtn').addEventListener('click', () => search(false));
     document.getElementById('clearBtn').addEventListener('click', clearSearch);
 
@@ -631,25 +558,15 @@
       }
     });
 
-    /**
-     * التعديل 1: تفريغ شريط البحث فوراً عند وصول 26 رقم متتالي
-     * - يتأكد أن أول 26 حرف كلها أرقام (0-9)
-     * - إذا تم لصق نص أطول، يفحص أول 26 حرف
-     * - لا يغير أي سلوك آخر
-     */
     searchBar.addEventListener('input', function () {
       const v = (searchBar.value || '').trim();
       if (v.length >= 26) {
         const first26 = v.slice(0, 26);
         if (/^\d{26}$/.test(first26)) {
-          // تفريغ الحقل فورًا كما طلبت (الوضع الأول)
           searchBar.value = "";
-          // نرسل حدث input للتأكد من تحديث أي مكان يعتمد على الحدث
           searchBar.dispatchEvent(new Event('input'));
-
-          // نحاول إعادة التركيز سريعًا (لو مش في حالة تجاوز التفاعل)
           setTimeout(() => {
-            if (app.style.display === 'block' && Date.now() > skipFocusUntil) {
+            if (app.style.display === 'block' && autoFocusEnabled && Date.now() > skipFocusUntil) {
               try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
             }
           }, 20);
@@ -657,50 +574,48 @@
       }
     });
 
-    /**************************************************************************
-     * التعديل 2: الحفاظ على الفوكس في شريط البحث طول الوقت
-     * - يسمح بالتفاعل الطبيعي مع الأزرار/الـ inputs (skip الفوكس مؤقتًا)
-     * - يعيد الفوكس سريعًا لو ضغطت في أي مكان غير تفاعلي
-     **************************************************************************/
-    let skipFocusUntil = 0; // طالع بـ timestamp (ms) ليتجاهل إعادة الفوكس مؤقتًا
+    let autoFocusEnabled = true;
+    let skipFocusUntil = 0;
 
-    // عند الضغط بالفأرة نحدد إذا كان الهدف عنصر تفاعلي (زر، رابط، input...) -> نسمح له بالعمل
     document.addEventListener('mousedown', function(e) {
       const interactive = e.target.closest('button, a, input, textarea, select, label, [contenteditable="true"]');
       if (interactive) {
-        // اترك التفاعل لمدة قصيرة (مثلاً 700ms) عشان الزر يشتغل بدون أن يسرق الفوكس فورًا
         skipFocusUntil = Date.now() + 700;
       } else {
-        // لو الضغط على أي مكان غير تفاعلي — بعد انتهاء الـ mousedown نعيد الفوكس بسرعة
         setTimeout(() => {
-          if (app.style.display === 'block' && document.activeElement !== searchBar && Date.now() > skipFocusUntil) {
+          if (app.style.display === 'block' && document.activeElement !== searchBar && Date.now() > skipFocusUntil && autoFocusEnabled) {
             try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
           }
         }, 25);
       }
     }, true);
 
-    // لو استخدمت Tab أو تركت الفوكس هربان، نمنع إعادة الفوكس مباشرةً حتى تنتهي التنقل
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Tab') {
         skipFocusUntil = Date.now() + 800;
       }
     });
 
-    // فحص دوري يعيد الفوكس إذا ماكان هناك تفاعل جاري
     setInterval(function() {
-      if (app.style.display === 'block' && Date.now() > skipFocusUntil && document.activeElement !== searchBar) {
+      if (app.style.display === 'block' && Date.now() > skipFocusUntil && document.activeElement !== searchBar && autoFocusEnabled) {
         try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
       }
     }, 300);
 
-    /**************************************************************************
-     * ملاحظات نهائية:
-     * - احفظ الملف كـ index.html وضع product.template(176).xlsx في نفس المجلد.
-     * - فتح الكاميرا يتطلب https أو سيرفر محلي.
-     * - السلوك: شريط البحث سيعيد الفوكس تلقائيًا طول ما التطبيق ظاهر، مع السماح
-     *   للأزرار والـ inputs بالعمل بشكل طبيعي (تم تأخير استعادة الفوكس عند التفاعل).
-     **************************************************************************/
+    focusToggleBtn.addEventListener('click', function() {
+      autoFocusEnabled = !autoFocusEnabled;
+      if (autoFocusEnabled) {
+        focusToggleBtn.classList.remove('focus-off');
+        focusToggleBtn.classList.add('focus-on');
+        focusToggleBtn.textContent = 'إيقاف التركيز';
+        try { searchBar.focus(); } catch(e){}
+      } else {
+        focusToggleBtn.classList.remove('focus-on');
+        focusToggleBtn.classList.add('focus-off');
+        focusToggleBtn.textContent = 'تشغيل التركيز';
+      }
+    });
   </script>
+
 </body>
 </html>
