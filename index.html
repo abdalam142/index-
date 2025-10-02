@@ -624,7 +624,6 @@
     document.getElementById('searchBtn').addEventListener('click', () => search(false));
     document.getElementById('clearBtn').addEventListener('click', clearSearch);
 
-    // عند الضغط Enter داخل الشريط
     searchBar.addEventListener('keypress', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -633,7 +632,7 @@
     });
 
     /**
-     * التعديل المطلوب: تفريغ شريط البحث فوراً عند وصول 26 رقم متتالي
+     * التعديل 1: تفريغ شريط البحث فوراً عند وصول 26 رقم متتالي
      * - يتأكد أن أول 26 حرف كلها أرقام (0-9)
      * - إذا تم لصق نص أطول، يفحص أول 26 حرف
      * - لا يغير أي سلوك آخر
@@ -647,14 +646,60 @@
           searchBar.value = "";
           // نرسل حدث input للتأكد من تحديث أي مكان يعتمد على الحدث
           searchBar.dispatchEvent(new Event('input'));
+
+          // نحاول إعادة التركيز سريعًا (لو مش في حالة تجاوز التفاعل)
+          setTimeout(() => {
+            if (app.style.display === 'block' && Date.now() > skipFocusUntil) {
+              try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
+            }
+          }, 20);
         }
       }
     });
 
     /**************************************************************************
+     * التعديل 2: الحفاظ على الفوكس في شريط البحث طول الوقت
+     * - يسمح بالتفاعل الطبيعي مع الأزرار/الـ inputs (skip الفوكس مؤقتًا)
+     * - يعيد الفوكس سريعًا لو ضغطت في أي مكان غير تفاعلي
+     **************************************************************************/
+    let skipFocusUntil = 0; // طالع بـ timestamp (ms) ليتجاهل إعادة الفوكس مؤقتًا
+
+    // عند الضغط بالفأرة نحدد إذا كان الهدف عنصر تفاعلي (زر، رابط، input...) -> نسمح له بالعمل
+    document.addEventListener('mousedown', function(e) {
+      const interactive = e.target.closest('button, a, input, textarea, select, label, [contenteditable="true"]');
+      if (interactive) {
+        // اترك التفاعل لمدة قصيرة (مثلاً 700ms) عشان الزر يشتغل بدون أن يسرق الفوكس فورًا
+        skipFocusUntil = Date.now() + 700;
+      } else {
+        // لو الضغط على أي مكان غير تفاعلي — بعد انتهاء الـ mousedown نعيد الفوكس بسرعة
+        setTimeout(() => {
+          if (app.style.display === 'block' && document.activeElement !== searchBar && Date.now() > skipFocusUntil) {
+            try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
+          }
+        }, 25);
+      }
+    }, true);
+
+    // لو استخدمت Tab أو تركت الفوكس هربان، نمنع إعادة الفوكس مباشرةً حتى تنتهي التنقل
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        skipFocusUntil = Date.now() + 800;
+      }
+    });
+
+    // فحص دوري يعيد الفوكس إذا ماكان هناك تفاعل جاري
+    setInterval(function() {
+      if (app.style.display === 'block' && Date.now() > skipFocusUntil && document.activeElement !== searchBar) {
+        try { searchBar.focus({preventScroll: true}); } catch(e) { searchBar.focus(); }
+      }
+    }, 300);
+
+    /**************************************************************************
      * ملاحظات نهائية:
      * - احفظ الملف كـ index.html وضع product.template(176).xlsx في نفس المجلد.
      * - فتح الكاميرا يتطلب https أو سيرفر محلي.
+     * - السلوك: شريط البحث سيعيد الفوكس تلقائيًا طول ما التطبيق ظاهر، مع السماح
+     *   للأزرار والـ inputs بالعمل بشكل طبيعي (تم تأخير استعادة الفوكس عند التفاعل).
      **************************************************************************/
   </script>
 </body>
